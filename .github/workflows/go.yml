@@ -29,6 +29,14 @@ jobs:
       run: |
         go test ./internal/... -coverpkg=./internal/... -coverprofile coverage.out -v 
         go tool cover -html coverage.out -o coverage.html
+    
+    - name: Integration Test
+      env:
+        INTEGRATION_REDIS_CONNECTION_STRING: redis://localhost:6379
+      run: |
+        docker-compose -f test/integration/docker-compose.yml up -d
+        sleep 5
+        go test ./test/integration/integration_test.go -v
 
     - name: Acceptance Test
       run: |
