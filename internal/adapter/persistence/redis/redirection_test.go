@@ -12,6 +12,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestRedisRepository_New(t *testing.T) {
+	// WHEN
+	_, err := redis.NewRedirectionRespository(fmt.Sprintf("http://localhost"))
+
+	// THEN
+	assert.Equal(t, internal.ErrInvalid, internal.ErrorCode(err))
+}
+
 func TestRedisRepository_Create(t *testing.T) {
 	// GIVEN
 	ctx := context.Background()
