@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -9,22 +10,23 @@ import (
 
 type Client struct {
 	driver   driver.Driver
+	ctx      context.Context
 	key      string
 	location string
 	err      error
 }
 
-func NewClient(driver driver.Driver) *Client {
-	return &Client{driver: driver}
+func NewClient(driver driver.Driver, ctx context.Context) *Client {
+	return &Client{driver: driver, ctx: ctx}
 }
 
 func (c *Client) CreateRedirection(location string) error {
-	c.key, c.err = c.driver.CreateRedirection(location)
+	c.key, c.err = c.driver.CreateRedirection(c.ctx, location)
 	return nil
 }
 
 func (c *Client) DeleteRedirection() error {
-	c.err = c.driver.DeleteRedirection(c.key)
+	c.err = c.driver.DeleteRedirection(c.ctx, c.key)
 	return nil
 }
 
@@ -34,13 +36,13 @@ func (c *Client) GetNonExistingKey() error {
 }
 
 func (c *Client) GetRedirectionLocation() error {
-	c.location, c.err = c.driver.GetRedirectionLocation(c.key)
+	c.location, c.err = c.driver.GetRedirectionLocation(c.ctx, c.key)
 	return nil
 }
 
 func (c *Client) GetRedirectionLocationTimes(times int) error {
 	for i := 1; i <= times; i++ {
-		c.location, c.err = c.driver.GetRedirectionLocation(c.key)
+		c.location, c.err = c.driver.GetRedirectionLocation(c.ctx, c.key)
 	}
 	return nil
 }
