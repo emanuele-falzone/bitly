@@ -16,7 +16,7 @@ func NewRedirectionRespository(connectionString string) (redirection.Repository,
 	// Parse connection string and check for errors
 	opt, err := redis.ParseURL(connectionString)
 	if err != nil {
-		return nil, err
+		return nil, &internal.Error{Code: internal.ErrInvalid, Op: "NewRedirectionRespository", Err: err}
 	}
 
 	// Create a new redis client
