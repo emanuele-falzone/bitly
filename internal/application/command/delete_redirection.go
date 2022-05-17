@@ -1,6 +1,8 @@
 package command
 
 import (
+	"context"
+
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 )
@@ -17,9 +19,9 @@ func NewDeleteRedirectionHandler(redirections redirection.Repository) DeleteRedi
 	return DeleteRedirectionHandler{redirections: redirections}
 }
 
-func (h DeleteRedirectionHandler) Handle(cmd DeleteRedirectionCommand) error {
+func (h DeleteRedirectionHandler) Handle(ctx context.Context, cmd DeleteRedirectionCommand) error {
 	// Find the redirection inside the repository
-	val, err := h.redirections.FindByKey(cmd.Key)
+	val, err := h.redirections.FindByKey(ctx, cmd.Key)
 
 	// If the find operation fails return error
 	if err != nil {
@@ -27,7 +29,7 @@ func (h DeleteRedirectionHandler) Handle(cmd DeleteRedirectionCommand) error {
 	}
 
 	// Save the redirection insire the repository
-	err = h.redirections.Delete(val)
+	err = h.redirections.Delete(ctx, val)
 
 	// If the delete operation fails return error
 	if err != nil {

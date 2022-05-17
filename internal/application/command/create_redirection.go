@@ -1,6 +1,8 @@
 package command
 
 import (
+	"context"
+
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 	"github.com/emanuelefalzone/bitly/internal/service"
@@ -23,7 +25,7 @@ func NewCreateRedirectionHandler(redirections redirection.Repository, generator 
 	return CreateRedirectionHandler{redirections: redirections, generator: generator}
 }
 
-func (h CreateRedirectionHandler) Handle(cmd CreateRedirectionCommand) (*CreateRedirectionCommandResult, error) {
+func (h CreateRedirectionHandler) Handle(ctx context.Context, cmd CreateRedirectionCommand) (*CreateRedirectionCommandResult, error) {
 	// Get a new key from the key generator
 	key := h.generator.NextKey(cmd.Location)
 
@@ -36,7 +38,7 @@ func (h CreateRedirectionHandler) Handle(cmd CreateRedirectionCommand) (*CreateR
 	}
 
 	// Save the redirection insire the repository
-	err = h.redirections.Create(val)
+	err = h.redirections.Create(ctx, val)
 
 	// If the save operation fails return error
 	if err != nil {

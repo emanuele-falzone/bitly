@@ -1,6 +1,7 @@
 package query_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/emanuelefalzone/bitly/internal"
@@ -12,18 +13,19 @@ import (
 )
 
 func TestRedirectionLocation(t *testing.T) {
+	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	// GIVEN
 	redirectionRepository := mock.NewMockRedirectionRepository(ctrl)
-	redirectionRepository.EXPECT().FindByKey(gomock.Any()).Return(redirection.New("abcdef", "http:/www.google.com"))
+	redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(redirection.New("abcdef", "http:/www.google.com"))
 
 	handler := query.NewRedirectionLocationHandler(redirectionRepository)
 
 	// WHEN
 	query := query.RedirectionLocationQuery{Key: "abcdef"}
-	result, err := handler.Handle(query)
+	result, err := handler.Handle(ctx, query)
 
 	// THEN
 	assert.Equal(t, nil, err)
@@ -31,18 +33,19 @@ func TestRedirectionLocation(t *testing.T) {
 }
 
 func TestRedirectionLocation_NotFoundErr(t *testing.T) {
+	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	// GIVEN
 	redirectionRepository := mock.NewMockRedirectionRepository(ctrl)
-	redirectionRepository.EXPECT().FindByKey(gomock.Any()).Return(redirection.Redirection{}, &internal.Error{Code: internal.ErrNotFound})
+	redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(redirection.Redirection{}, &internal.Error{Code: internal.ErrNotFound})
 
 	handler := query.NewRedirectionLocationHandler(redirectionRepository)
 
 	// WHEN
 	query := query.RedirectionLocationQuery{Key: "abcdef"}
-	_, err := handler.Handle(query)
+	_, err := handler.Handle(ctx, query)
 
 	// THEN
 	assert.Equal(t, internal.ErrNotFound, internal.ErrorCode(err))

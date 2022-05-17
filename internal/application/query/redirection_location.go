@@ -1,6 +1,8 @@
 package query
 
 import (
+	"context"
+
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 )
@@ -21,9 +23,9 @@ func NewRedirectionLocationHandler(redirections redirection.Repository) Redirect
 	return RedirectionLocationHandler{redirections: redirections}
 }
 
-func (h RedirectionLocationHandler) Handle(query RedirectionLocationQuery) (*RedirectionLocationQueryResult, error) {
+func (h RedirectionLocationHandler) Handle(ctx context.Context, query RedirectionLocationQuery) (*RedirectionLocationQueryResult, error) {
 	// Find the redirection inside the repository
-	val, err := h.redirections.FindByKey(query.Key)
+	val, err := h.redirections.FindByKey(ctx, query.Key)
 
 	// If the find operation fails return error
 	if err != nil {

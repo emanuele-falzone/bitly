@@ -1,6 +1,7 @@
 package command_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/emanuelefalzone/bitly/internal"
@@ -11,12 +12,13 @@ import (
 )
 
 func TestCreateRedirection(t *testing.T) {
+	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	// GIVEN
 	redirectionRepository := mock.NewMockRedirectionRepository(ctrl)
-	redirectionRepository.EXPECT().Create(gomock.Any()).Return(nil)
+	redirectionRepository.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 
 	keyGenerator := mock.NewMockKeyGenerator(ctrl)
 	keyGenerator.EXPECT().NextKey(gomock.Any()).Return("abcdef")
@@ -25,7 +27,7 @@ func TestCreateRedirection(t *testing.T) {
 
 	// WHEN
 	cmd := command.CreateRedirectionCommand{Location: "http://www.google.com"}
-	result, err := handler.Handle(cmd)
+	result, err := handler.Handle(ctx, cmd)
 
 	// THEN
 	assert.Equal(t, nil, err)
@@ -33,6 +35,7 @@ func TestCreateRedirection(t *testing.T) {
 }
 
 func TestCreateRedirection_InvalidErr(t *testing.T) {
+	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -46,19 +49,20 @@ func TestCreateRedirection_InvalidErr(t *testing.T) {
 
 	// WHEN
 	cmd := command.CreateRedirectionCommand{Location: "google.com"}
-	_, err := handler.Handle(cmd)
+	_, err := handler.Handle(ctx, cmd)
 
 	// THEN
 	assert.Equal(t, internal.ErrInvalid, internal.ErrorCode(err))
 }
 
 func TestCreateRedirection_ConflictErr(t *testing.T) {
+	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	// GIVEN
 	redirectionRepository := mock.NewMockRedirectionRepository(ctrl)
-	redirectionRepository.EXPECT().Create(gomock.Any()).Return(&internal.Error{Code: internal.ErrConflict})
+	redirectionRepository.EXPECT().Create(gomock.Any(), gomock.Any()).Return(&internal.Error{Code: internal.ErrConflict})
 
 	keyGenerator := mock.NewMockKeyGenerator(ctrl)
 	keyGenerator.EXPECT().NextKey(gomock.Any()).Return("abcdef")
@@ -67,7 +71,7 @@ func TestCreateRedirection_ConflictErr(t *testing.T) {
 
 	// WHEN
 	cmd := command.CreateRedirectionCommand{Location: "http://www.google.com"}
-	_, err := handler.Handle(cmd)
+	_, err := handler.Handle(ctx, cmd)
 
 	// THEN
 	assert.Equal(t, internal.ErrConflict, internal.ErrorCode(err))
