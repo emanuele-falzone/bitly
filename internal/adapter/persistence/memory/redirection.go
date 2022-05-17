@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/emanuelefalzone/bitly/internal"
@@ -15,7 +16,7 @@ func NewRedirectionRepository() redirection.Repository {
 	return InMemoryRedirectionRepository{redirections: make(map[string]redirection.Redirection)}
 }
 
-func (r InMemoryRedirectionRepository) Create(a redirection.Redirection) error {
+func (r InMemoryRedirectionRepository) Create(ctx context.Context, a redirection.Redirection) error {
 	// Check if the Key already exists
 	if _, alreadyExists := r.redirections[a.Key]; alreadyExists {
 		// Cannot create a redirection with the same Key return error
@@ -26,7 +27,7 @@ func (r InMemoryRedirectionRepository) Create(a redirection.Redirection) error {
 	return nil
 }
 
-func (r InMemoryRedirectionRepository) Delete(a redirection.Redirection) error {
+func (r InMemoryRedirectionRepository) Delete(ctx context.Context, a redirection.Redirection) error {
 	// Check if the Key already exists
 	if _, alreadyExists := r.redirections[a.Key]; !alreadyExists {
 		// Cannot delete a redirection that does not exists, return error
@@ -37,7 +38,7 @@ func (r InMemoryRedirectionRepository) Delete(a redirection.Redirection) error {
 	return nil
 }
 
-func (r InMemoryRedirectionRepository) FindByKey(key string) (redirection.Redirection, error) {
+func (r InMemoryRedirectionRepository) FindByKey(ctx context.Context, key string) (redirection.Redirection, error) {
 	// Check if the key exists
 	if redirect, exists := r.redirections[key]; exists {
 		return redirect, nil
