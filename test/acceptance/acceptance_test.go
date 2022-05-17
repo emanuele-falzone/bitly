@@ -1,6 +1,7 @@
 package acceptance_test
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -14,6 +15,8 @@ import (
 )
 
 func TestMain(m *testing.M) {
+
+	ctx := context.Background()
 
 	var opts = godog.Options{
 		Output: colors.Colored(os.Stdout),
@@ -29,7 +32,7 @@ func TestMain(m *testing.M) {
 			keyGenerator := service.NewRandomKeyGenerator(0)
 			application := application.New(redirectionRepository, keyGenerator)
 			driver := driver.NewGoDriver(application)
-			client := client.NewClient(driver)
+			client := client.NewClient(driver, ctx)
 			return client
 		}),
 		Options: &opts,
