@@ -25,10 +25,14 @@ jobs:
     - name: Build
       run: go build -v ./cmd/main.go
 
-    - name: Test
+    - name: Unit Test
       run: |
-        go test ./... -coverpkg=./internal/... -coverprofile coverage.out
+        go test ./internal/... -coverpkg=./internal/... -coverprofile coverage.out -v 
         go tool cover -html coverage.out -o coverage.html
+
+    - name: Acceptance Test
+      run: |
+        go test ./test/acceptance/acceptance_test.go -v
 
     - uses: actions/upload-artifact@v3
       with:
