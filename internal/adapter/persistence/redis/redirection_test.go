@@ -14,7 +14,7 @@ import (
 
 func TestRedisRepository_New(t *testing.T) {
 	// WHEN
-	_, err := redis.NewRedirectionRespository(fmt.Sprintf("http://localhost"))
+	_, err := redis.NewRedirectionRepository(fmt.Sprintf("http://localhost"))
 
 	// THEN
 	assert.Equal(t, internal.ErrInvalid, internal.ErrorCode(err))
@@ -26,7 +26,7 @@ func TestRedisRepository_Create(t *testing.T) {
 	s, err := miniredis.Run()
 	assert.Equal(t, nil, err)
 	defer s.Close()
-	repository, err := redis.NewRedirectionRespository(fmt.Sprintf("redis://%s", s.Addr()))
+	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
 	assert.Equal(t, nil, err)
 
 	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}
@@ -44,7 +44,7 @@ func TestRedisRepository_CreateConflictErr(t *testing.T) {
 	s, err := miniredis.Run()
 	assert.Equal(t, nil, err)
 	defer s.Close()
-	repository, err := redis.NewRedirectionRespository(fmt.Sprintf("redis://%s", s.Addr()))
+	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
 	assert.Equal(t, nil, err)
 
 	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}
@@ -65,7 +65,7 @@ func TestRedisRepository_CreateInternalErr(t *testing.T) {
 	ctx := context.Background()
 	s, err := miniredis.Run()
 	assert.Equal(t, nil, err)
-	repository, err := redis.NewRedirectionRespository(fmt.Sprintf("redis://%s", s.Addr()))
+	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
 	assert.Equal(t, nil, err)
 
 	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}
@@ -87,7 +87,7 @@ func TestRedisRepository_Delete(t *testing.T) {
 	s, err := miniredis.Run()
 	assert.Equal(t, nil, err)
 	defer s.Close()
-	repository, err := redis.NewRedirectionRespository(fmt.Sprintf("redis://%s", s.Addr()))
+	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
 	assert.Equal(t, nil, err)
 
 	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}
@@ -108,7 +108,7 @@ func TestRedisRepository_DeleteErrNotFound(t *testing.T) {
 	s, err := miniredis.Run()
 	assert.Equal(t, nil, err)
 	defer s.Close()
-	repository, err := redis.NewRedirectionRespository(fmt.Sprintf("redis://%s", s.Addr()))
+	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
 	assert.Equal(t, nil, err)
 
 	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}
@@ -125,7 +125,7 @@ func TestRedisRepository_DeleteErrInternal(t *testing.T) {
 	ctx := context.Background()
 	s, err := miniredis.Run()
 	assert.Equal(t, nil, err)
-	repository, err := redis.NewRedirectionRespository(fmt.Sprintf("redis://%s", s.Addr()))
+	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
 	assert.Equal(t, nil, err)
 
 	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}
@@ -144,7 +144,7 @@ func TestRedisRepository_FindByKey(t *testing.T) {
 	s, err := miniredis.Run()
 	assert.Equal(t, nil, err)
 	defer s.Close()
-	repository, err := redis.NewRedirectionRespository(fmt.Sprintf("redis://%s", s.Addr()))
+	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
 	assert.Equal(t, nil, err)
 
 	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}
@@ -167,7 +167,7 @@ func TestRedisRepository_FindByKeyErrNotFound(t *testing.T) {
 	s, err := miniredis.Run()
 	assert.Equal(t, nil, err)
 	defer s.Close()
-	repository, err := redis.NewRedirectionRespository(fmt.Sprintf("redis://%s", s.Addr()))
+	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
 	assert.Equal(t, nil, err)
 
 	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}
@@ -184,7 +184,7 @@ func TestRedisRepository_FindByKeyErrInternal(t *testing.T) {
 	ctx := context.Background()
 	s, err := miniredis.Run()
 	assert.Equal(t, nil, err)
-	repository, err := redis.NewRedirectionRespository(fmt.Sprintf("redis://%s", s.Addr()))
+	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
 	assert.Equal(t, nil, err)
 
 	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}

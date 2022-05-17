@@ -45,7 +45,7 @@ func TestRedisRedirectionRepository(t *testing.T) {
 			return nil, flushErr
 		}
 
-		return _redis.NewRedirectionRespository(connectionString)
+		return _redis.NewRedirectionRepository(connectionString)
 	})
 }
 
