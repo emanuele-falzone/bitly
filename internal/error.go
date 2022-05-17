@@ -14,6 +14,7 @@ const (
 )
 
 // Error defines a standard application error.
+// https://middlemost.com/failure-is-your-domain/
 type Error struct {
 	// Machine-readable error code.
 	Code string
