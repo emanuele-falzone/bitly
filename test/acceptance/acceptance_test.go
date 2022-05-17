@@ -1,9 +1,44 @@
 package acceptance_test
 
 import (
+	"os"
+	"testing"
+
 	"github.com/cucumber/godog"
+	"github.com/cucumber/godog/colors"
+	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/memory"
+	"github.com/emanuelefalzone/bitly/internal/application"
+	"github.com/emanuelefalzone/bitly/internal/service"
 	"github.com/emanuelefalzone/bitly/test/acceptance/client"
+	"github.com/emanuelefalzone/bitly/test/acceptance/driver"
 )
+
+func TestMain(m *testing.M) {
+
+	var opts = godog.Options{
+		Output: colors.Colored(os.Stdout),
+		Paths:  []string{"./feature"},
+	}
+
+	godog.BindCommandLineFlags("godog.", &opts)
+
+	status := godog.TestSuite{
+		Name: "Acceptance tests using go driver and in memory repositories",
+		ScenarioInitializer: InitializeScenario(func() *client.Client {
+			redirectionRepository := memory.NewRedirectionRepository()
+			keyGenerator := service.NewRandomKeyGenerator(0)
+			application := application.New(redirectionRepository, keyGenerator)
+			driver := driver.NewGoDriver(application)
+			client := client.NewClient(driver)
+			return client
+		}),
+		Options: &opts,
+	}.Run()
+
+	if status != 0 {
+		os.Exit(status)
+	}
+}
 
 func InitializeScenario(fn func() *client.Client) func(*godog.ScenarioContext) {
 	return func(ctx *godog.ScenarioContext) {
