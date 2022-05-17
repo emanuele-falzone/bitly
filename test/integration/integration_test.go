@@ -7,9 +7,9 @@ import (
 
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/memory"
-	_redis "github.com/emanuelefalzone/bitly/internal/adapter/persistence/redis"
+	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/redis"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
-	"github.com/go-redis/redis/v8"
+	"github.com/emanuelefalzone/bitly/test/util"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,21 +31,12 @@ func TestRedisRedirectionRepository(t *testing.T) {
 		}
 
 		// Parse connection string and check for errors
-		opt, err := redis.ParseURL(connectionString)
+		err = util.ClearRedis(ctx, connectionString)
 		if err != nil {
 			return nil, err
 		}
 
-		// Create a new redis client
-		client := redis.NewClient(opt)
-
-		// Flush all keys
-		flushErr := client.FlushAll(ctx).Err()
-		if flushErr != nil {
-			return nil, flushErr
-		}
-
-		return _redis.NewRedirectionRepository(connectionString)
+		return redis.NewRedirectionRepository(connectionString)
 	})
 }
 
