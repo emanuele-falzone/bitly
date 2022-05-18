@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+option go_package = "github.com/emanuelefalzone/bitly/internal/adapter/service/grpc";
+
+message Void {};
+
+message CreateRedirectionRequest {
+  string location = 1;
+}
+
+message CreateRedirectionResponse {
+  string key = 1;
+}
+
+message DeleteRedirectionRequest {
+  string key = 1;
+}
+
+message DeleteRedirectionResponse {}
+
+message GetRedirectionLocationRequest {
+  string key = 1;
+}
+
+message GetRedirectionLocationResponse {
+  string location = 1;
+}
+
+service BitlyService {
+  rpc CreateRedirection (CreateRedirectionRequest) returns (CreateRedirectionResponse);
+  rpc DeleteRedirection (DeleteRedirectionRequest) returns (DeleteRedirectionResponse);
+  rpc GetRedirectionLocation (GetRedirectionLocationRequest) returns (GetRedirectionLocationResponse);
+};
