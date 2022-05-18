@@ -24,8 +24,10 @@ jobs:
     - name: Download all dependencies
       run: go mod download
 
-    - name: Generate mock
-      run: make generate-repository-mock
+    - name: Generate mocks
+      run: |
+          make generate-repository-mock
+          make generate-key-generator-mock
     
     - name: Generate grpc server
       run: make generate-grpc-server

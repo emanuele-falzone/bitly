@@ -5,6 +5,12 @@ generate-repository-mock:
 		-mock_names=Repository=MockRedirectionRepository \
 		github.com/emanuelefalzone/bitly/internal/domain/redirection Repository
 
+generate-key-generator-mock:
+	go install github.com/golang/mock/mockgen
+	mockgen -destination=./test/mock/key_generator_service.go \
+		-package=mock \
+		github.com/emanuelefalzone/bitly/internal/service KeyGenerator
+
 generate-grpc-server:
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
 	go install google.golang.org/protobuf/cmd/protoc-gen-go
