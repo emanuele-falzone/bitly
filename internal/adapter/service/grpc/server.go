@@ -1,6 +1,6 @@
 package grpc
 
-//go:generate protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative bitly_service.proto
+//go:generate protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative ./pb/bitly_service.proto
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"net"
 
 	"github.com/emanuelefalzone/bitly/internal"
+	"github.com/emanuelefalzone/bitly/internal/adapter/service/grpc/pb"
 	"github.com/emanuelefalzone/bitly/internal/application"
 	"github.com/emanuelefalzone/bitly/internal/application/command"
 	"github.com/emanuelefalzone/bitly/internal/application/query"
@@ -18,7 +19,7 @@ import (
 )
 
 type Server struct {
-	UnimplementedBitlyServiceServer
+	pb.UnimplementedBitlyServiceServer
 	app *application.Application
 }
 
@@ -32,7 +33,7 @@ func (s *Server) Start(port int) error {
 		return err
 	}
 	grpcServer := grpc.NewServer()
-	RegisterBitlyServiceServer(grpcServer, s)
+	pb.RegisterBitlyServiceServer(grpcServer, s)
 
 	// Register reflection service on gRPC server.
 	reflection.Register(grpcServer)
@@ -42,7 +43,7 @@ func (s *Server) Start(port int) error {
 	return err
 }
 
-func (s *Server) CreateRedirection(ctx context.Context, in *CreateRedirectionRequest) (*CreateRedirectionResponse, error) {
+func (s *Server) CreateRedirection(ctx context.Context, in *pb.CreateRedirectionRequest) (*pb.CreateRedirectionResponse, error) {
 	// Create a new CreateRedirectionCommand
 	cmd := command.CreateRedirectionCommand{Location: in.Location}
 
@@ -53,10 +54,10 @@ func (s *Server) CreateRedirection(ctx context.Context, in *CreateRedirectionReq
 	}
 
 	// Send redirection key
-	return &CreateRedirectionResponse{Key: value.Key}, nil
+	return &pb.CreateRedirectionResponse{Key: value.Key}, nil
 }
 
-func (s *Server) DeleteRedirection(ctx context.Context, in *DeleteRedirectionRequest) (*DeleteRedirectionResponse, error) {
+func (s *Server) DeleteRedirection(ctx context.Context, in *pb.DeleteRedirectionRequest) (*pb.DeleteRedirectionResponse, error) {
 	// Create a new DeleteRedirectionCommand using the key specified in the request
 	cmd := command.DeleteRedirectionCommand{Key: in.Key}
 
@@ -67,10 +68,10 @@ func (s *Server) DeleteRedirection(ctx context.Context, in *DeleteRedirectionReq
 	}
 
 	// Send DeleteRedirectionResponse to signal that the operation was succesfully executed
-	return &DeleteRedirectionResponse{}, nil
+	return &pb.DeleteRedirectionResponse{}, nil
 }
 
-func (s *Server) GetRedirectionLocation(ctx context.Context, in *GetRedirectionLocationRequest) (*GetRedirectionLocationResponse, error) {
+func (s *Server) GetRedirectionLocation(ctx context.Context, in *pb.GetRedirectionLocationRequest) (*pb.GetRedirectionLocationResponse, error) {
 	// Create a new RedirectionLocationQuery
 	q := query.RedirectionLocationQuery{Key: in.Key}
 
@@ -81,7 +82,7 @@ func (s *Server) GetRedirectionLocation(ctx context.Context, in *GetRedirectionL
 	}
 
 	// Return redirection location
-	return &GetRedirectionLocationResponse{Location: value.Location}, nil
+	return &pb.GetRedirectionLocationResponse{Location: value.Location}, nil
 }
 
 // Map internal errors to grpc error

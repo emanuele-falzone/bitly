@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/emanuelefalzone/bitly/internal/adapter/service/grpc";
+option go_package = "github.com/emanuelefalzone/bitly/internal/adapter/service/grpc/pb";
 
 message Void {};
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/memory"
 	"github.com/emanuelefalzone/bitly/internal/adapter/service/grpc"
+	"github.com/emanuelefalzone/bitly/internal/adapter/service/grpc/pb"
 	"github.com/emanuelefalzone/bitly/internal/application"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 	"github.com/emanuelefalzone/bitly/internal/service"
@@ -44,7 +45,7 @@ func TestRedirectionCreate(t *testing.T) {
 			application := application.New(repository, generator)
 			server := grpc.NewServer(application)
 
-			_, err := server.CreateRedirection(ctx, &grpc.CreateRedirectionRequest{Location: tc.location})
+			_, err := server.CreateRedirection(ctx, &pb.CreateRedirectionRequest{Location: tc.location})
 
 			if tc.expectedErr {
 				err, ok := status.FromError(err)
@@ -96,7 +97,7 @@ func TestRedirectionDelete(t *testing.T) {
 				repository.Create(ctx, redirection.Redirection{Key: tc.key, Location: tc.location})
 			}
 
-			_, err := server.DeleteRedirection(ctx, &grpc.DeleteRedirectionRequest{Key: tc.key})
+			_, err := server.DeleteRedirection(ctx, &pb.DeleteRedirectionRequest{Key: tc.key})
 
 			if tc.expectedErr {
 				err, ok := status.FromError(err)
@@ -148,7 +149,7 @@ func TestGetRedirectionLocation(t *testing.T) {
 				repository.Create(ctx, redirection.Redirection{Key: tc.key, Location: tc.location})
 			}
 
-			_, err := server.GetRedirectionLocation(ctx, &grpc.GetRedirectionLocationRequest{Key: tc.key})
+			_, err := server.GetRedirectionLocation(ctx, &pb.GetRedirectionLocationRequest{Key: tc.key})
 
 			if tc.expectedErr {
 				err, ok := status.FromError(err)
