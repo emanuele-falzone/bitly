@@ -7,11 +7,14 @@ import (
 
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
+	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/memory"
+	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/redis"
 	"github.com/emanuelefalzone/bitly/internal/application"
 	"github.com/emanuelefalzone/bitly/internal/service"
 	"github.com/emanuelefalzone/bitly/test/acceptance/client"
 	"github.com/emanuelefalzone/bitly/test/acceptance/driver"
+	"github.com/emanuelefalzone/bitly/test/util"
 )
 
 func TestMain(m *testing.M) {
@@ -29,6 +32,40 @@ func TestMain(m *testing.M) {
 		Name: "Acceptance tests using go driver and in memory repositories",
 		ScenarioInitializer: InitializeScenario(func() *client.Client {
 			redirectionRepository := memory.NewRedirectionRepository()
+			keyGenerator := service.NewRandomKeyGenerator(0)
+			application := application.New(redirectionRepository, keyGenerator)
+			driver := driver.NewGoDriver(application)
+			client := client.NewClient(driver, ctx)
+			return client
+		}),
+		Options: &opts,
+	}.Run()
+
+	if status != 0 {
+		os.Exit(status)
+	}
+
+	status = godog.TestSuite{
+		Name: "Acceptance tests using go driver and redis repository",
+		ScenarioInitializer: InitializeScenario(func() *client.Client {
+			// Read redis connection string from env
+			connectionString, err := internal.GetEnv("ACCEPTANCE_REDIS_CONNECTION_STRING")
+			if err != nil {
+				panic(err)
+			}
+
+			// Parse connection string and check for errors
+			err = util.ClearRedis(ctx, connectionString)
+			if err != nil {
+				panic(err)
+			}
+
+			// Create new redis repository
+			redirectionRepository, err := redis.NewRedirectionRepository(connectionString)
+			if err != nil {
+				panic(err)
+			}
+
 			keyGenerator := service.NewRandomKeyGenerator(0)
 			application := application.New(redirectionRepository, keyGenerator)
 			driver := driver.NewGoDriver(application)
