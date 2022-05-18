@@ -5,29 +5,38 @@ option go_package = "github.com/emanuelefalzone/bitly/internal/adapter/service/g
 message Void {};
 
 message CreateRedirectionRequest {
+  // The location that has to be shortened
   string location = 1;
 }
 
 message CreateRedirectionResponse {
+  // The key associated with the location specified in the request
   string key = 1;
 }
 
 message DeleteRedirectionRequest {
+  // The key that has to be deleted
   string key = 1;
 }
 
 message DeleteRedirectionResponse {}
 
 message GetRedirectionLocationRequest {
+  // The key we want to know the location of
   string key = 1;
 }
 
 message GetRedirectionLocationResponse {
+  // The location of the requested key
   string location = 1;
 }
 
+// BitlyService is the service for handling url redirections
 service BitlyService {
+  // Create a new key for the given location
   rpc CreateRedirection (CreateRedirectionRequest) returns (CreateRedirectionResponse);
+  // Delete the given key
   rpc DeleteRedirection (DeleteRedirectionRequest) returns (DeleteRedirectionResponse);
+  // Get the location associated to a given key
   rpc GetRedirectionLocation (GetRedirectionLocationRequest) returns (GetRedirectionLocationResponse);
 };
