@@ -1,4 +1,4 @@
-generate-repositoty-mock:
+generate-repository-mock:
 	go install github.com/golang/mock/mockgen
 	mockgen -destination=./test/mock/redirection_repository.go \
 		-package=mock \
