@@ -37,10 +37,16 @@ jobs:
         docker-compose -f test/integration/docker-compose.yml up -d
         sleep 5
         go test ./test/integration/integration_test.go -v
+        docker-compose -f test/integration/docker-compose.yml down
 
     - name: Acceptance Test
+      env:
+        ACCEPTANCE_REDIS_CONNECTION_STRING: redis://localhost:6379
       run: |
+        docker-compose -f test/acceptance/docker-compose.yml up -d
+        sleep 5
         go test ./test/acceptance/acceptance_test.go -v
+        docker-compose -f test/acceptance/docker-compose.yml down
 
     - uses: actions/upload-artifact@v3
       with:
