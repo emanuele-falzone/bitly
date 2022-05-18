@@ -45,7 +45,7 @@ jobs:
       run: |
         docker-compose -f test/acceptance/docker-compose.yml up -d
         sleep 5
-        go test ./test/acceptance/acceptance_test.go -v
+        go test ./test/acceptance/go_acceptance_test.go -v
         docker-compose -f test/acceptance/docker-compose.yml down
 
     - uses: actions/upload-artifact@v3
