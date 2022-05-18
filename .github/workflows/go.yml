@@ -53,10 +53,12 @@ jobs:
     - name: Acceptance Test
       env:
         ACCEPTANCE_REDIS_CONNECTION_STRING: redis://localhost:6379
+        ACCEPTANCE_GRPC_SERVER: localhost:4000
       run: |
         docker-compose -f test/acceptance/docker-compose.yml up -d
         sleep 5
         go test ./test/acceptance/go_acceptance_test.go -v
+        go test ./test/acceptance/grpc_acceptance_test.go -v
         docker-compose -f test/acceptance/docker-compose.yml down
 
     - uses: actions/upload-artifact@v3
