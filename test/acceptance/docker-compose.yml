@@ -2,6 +2,13 @@ version: '3.1'
 
 services:
 
+  bitly:
+    build: ../..
+    environment:
+      - REDIS_CONNECTION_STRING=redis://redis:6379
+    ports:
+      - 4000:4000
+
   redis:
     image: redis:6.2.7-alpine
     hostname: redis
