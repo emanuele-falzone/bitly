@@ -37,7 +37,8 @@ jobs:
 
     - name: Unit Test
       run: |
-        go test ./internal/... -coverpkg=./internal/... -coverprofile coverage.out -v 
+        CVPKG=$(go list ./internal/... | grep -v pb | tr '\n' ',') 
+        go test ./internal/... -coverpkg=$CVPKG -coverprofile coverage.out -v 
         go tool cover -html coverage.out -o coverage.html
     
     - name: Integration Test
