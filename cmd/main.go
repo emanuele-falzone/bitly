@@ -40,5 +40,7 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer(app)
-	grpcServer.Start(intGrpcPort)
+	go grpcServer.Start(intGrpcPort)
+
+	grpc.StartGateway()
 }
