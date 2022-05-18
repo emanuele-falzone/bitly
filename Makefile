@@ -16,6 +16,7 @@ generate-grpc-server:
 			internal/adapter/service/grpc/pb/bitly_service.proto
 
 generate-grpc-server-documentation:
+	mkdir -p ./docs
 	go install github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc
 	protoc \
 		--doc_out=./docs \
