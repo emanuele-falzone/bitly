@@ -28,10 +28,10 @@ jobs:
       run: make generate-repository-mock
     
     - name: Generate grpc server
-      run: make grpc-server
+      run: make generate-grpc-server
 
     - name: Generate grpc server documentation
-      run: make grpc-server-documentation
+      run: make generate-grpc-server-documentation
 
     - name: Build
       run: go build -v ./cmd/main.go
