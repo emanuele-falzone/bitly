@@ -19,6 +19,11 @@ jobs:
     - name: Set up mockgen
       run: go install github.com/golang/mock/mockgen@v1.6.0
 
+    - name: Set up protoc
+      run: |
+        apt install -y protobuf-compiler
+        protoc --version
+
     - name: Generate
       run: go generate ./...
 
