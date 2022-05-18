@@ -27,3 +27,31 @@ generate-grpc-server-documentation:
 	protoc \
 		--doc_out=./docs \
 		internal/adapter/service/grpc/pb/bitly_service.proto
+
+build:
+	go build -v ./cmd/main.go
+
+run-unit-tests:
+	CVPKG=$(go list ./internal/... | grep -v pb | tr '\n' ',') 
+	go test ./internal/... -coverpkg=$CVPKG -coverprofile coverage.out -v 
+	go tool cover -html coverage.out -o coverage.html
+
+run-integration-tests:
+	docker-compose -f test/integration/docker-compose.yml up -d
+	sleep 5
+	INTEGRATION_REDIS_CONNECTION_STRING=redis://localhost:6379 \
+		go test ./test/integration/integration_test.go -v
+	docker-compose -f test/integration/docker-compose.yml down
+
+run-acceptance-tests:
+	docker-compose -f test/acceptance/docker-compose.yml up -d
+	sleep 5
+	ACCEPTANCE_REDIS_CONNECTION_STRING=redis://localhost:6379 \
+		ACCEPTANCE_GRPC_SERVER=localhost:4000 \
+		go test ./test/acceptance/go_acceptance_test.go -v
+	
+	ACCEPTANCE_REDIS_CONNECTION_STRING=redis://localhost:6379 \
+		ACCEPTANCE_GRPC_SERVER=localhost:4000 \
+		go test ./test/acceptance/grpc_acceptance_test.go -v
+
+	docker-compose -f test/acceptance/docker-compose.yml down

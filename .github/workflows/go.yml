@@ -36,33 +36,16 @@ jobs:
       run: make generate-grpc-server-documentation
 
     - name: Build
-      run: go build -v ./cmd/main.go
+      run: make build
 
-    - name: Unit Test
-      run: |
-        CVPKG=$(go list ./internal/... | grep -v pb | tr '\n' ',') 
-        go test ./internal/... -coverpkg=$CVPKG -coverprofile coverage.out -v 
-        go tool cover -html coverage.out -o coverage.html
+    - name: Unit Tests
+      run: make run-unit-tests
     
-    - name: Integration Test
-      env:
-        INTEGRATION_REDIS_CONNECTION_STRING: redis://localhost:6379
-      run: |
-        docker-compose -f test/integration/docker-compose.yml up -d
-        sleep 5
-        go test ./test/integration/integration_test.go -v
-        docker-compose -f test/integration/docker-compose.yml down
+    - name: Integration Tests
+      run: make run-integration-tests
 
-    - name: Acceptance Test
-      env:
-        ACCEPTANCE_REDIS_CONNECTION_STRING: redis://localhost:6379
-        ACCEPTANCE_GRPC_SERVER: localhost:4000
-      run: |
-        docker-compose -f test/acceptance/docker-compose.yml up -d
-        sleep 5
-        go test ./test/acceptance/go_acceptance_test.go -v
-        go test ./test/acceptance/grpc_acceptance_test.go -v
-        docker-compose -f test/acceptance/docker-compose.yml down
+    - name: Acceptance Tests
+      run: make run-acceptance-tests
 
     - uses: actions/upload-artifact@v3
       with:
