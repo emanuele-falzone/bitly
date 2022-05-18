@@ -16,21 +16,22 @@ jobs:
       with:
         go-version: 1.18
 
-    - name: Set up mockgen
-      run: go install github.com/golang/mock/mockgen@v1.6.0
-
-    - name: Set up protobuf and grpc
-      run: |
-        go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
-        go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
-
     - name: Set up protoc
       uses: arduino/setup-protoc@v1
       with:
         version: '3.19.4'
 
-    - name: Generate
-      run: go generate ./...
+    - name: Download all dependencies
+      run: go mod download
+
+    - name: Generate mock
+      run: make generate-repository-mock
+    
+    - name: Generate grpc server
+      run: make grpc-server
+
+    - name: Generate grpc server documentation
+      run: make grpc-server-documentation
 
     - name: Build
       run: go build -v ./cmd/main.go
