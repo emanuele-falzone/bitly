@@ -85,6 +85,20 @@ func (s *Server) GetRedirectionLocation(ctx context.Context, in *pb.GetRedirecti
 	return &pb.GetRedirectionLocationResponse{Location: value.Location}, nil
 }
 
+func (s *Server) GetRedirectionCount(ctx context.Context, in *pb.GetRedirectionCountRequest) (*pb.GetRedirectionCountResponse, error) {
+	// Create a new RedirectionCountQuery
+	q := query.RedirectionCountQuery{Key: in.Key}
+
+	// Query execution
+	value, err := s.app.Queries.RedirectionCount.Handle(ctx, q)
+	if err != nil {
+		return nil, mapErrorToGrpcError(err)
+	}
+
+	// Return redirection count
+	return &pb.GetRedirectionCountResponse{Count: int64(value.Count)}, nil
+}
+
 // Map internal errors to grpc error
 func mapErrorToGrpcError(err error) error {
 	msg := internal.ErrorMessage(err)

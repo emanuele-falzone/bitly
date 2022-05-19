@@ -168,3 +168,63 @@ func TestGetRedirectionLocation(t *testing.T) {
 		})
 	}
 }
+
+func TestGetRedirectionCount(t *testing.T) {
+	// Build our needed testcase data struct
+	type testCase struct {
+		test            string
+		location        string
+		key             string
+		alreadyExists   bool
+		count           int
+		expectedErr     bool
+		expectedErrCode codes.Code
+	}
+	// Create new test cases
+	testCases := []testCase{
+		{
+			test:          "Valid location",
+			location:      "http://www.google.com",
+			key:           "short",
+			count:         10,
+			alreadyExists: true,
+			expectedErr:   false,
+		}, {
+			test:            "Invalid location",
+			location:        "short",
+			alreadyExists:   false,
+			expectedErr:     true,
+			expectedErrCode: codes.NotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.test, func(t *testing.T) {
+			ctx := context.Background()
+			redirectionRepository := memory.NewRedirectionRepository()
+			eventRepository := memory.NewEventRepository()
+			generator := service.NewRandomKeyGenerator(0)
+			dispatcher := event.NewDispatcher(ctx)
+			application := application.New(redirectionRepository, eventRepository, generator, dispatcher)
+			server := grpc.NewServer(application)
+
+			if tc.alreadyExists {
+				redirectionRepository.Create(ctx, redirection.Redirection{Key: tc.key, Location: tc.location})
+				for i := 0; i < tc.count; i++ {
+					eventRepository.Create(ctx, event.Read(redirection.Redirection{Key: tc.key, Location: tc.location}))
+				}
+			}
+
+			result, err := server.GetRedirectionCount(ctx, &pb.GetRedirectionCountRequest{Key: tc.key})
+
+			if tc.expectedErr {
+				err, ok := status.FromError(err)
+				assert.True(t, ok)
+				assert.Equal(t, tc.expectedErrCode, err.Code())
+			} else {
+				assert.Nil(t, err)
+				assert.Equal(t, int64(tc.count), result.Count)
+			}
+		})
+	}
+}
