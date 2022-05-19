@@ -6,6 +6,7 @@ import (
 
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/application/command"
+	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/test/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -23,7 +24,9 @@ func TestCreateRedirection(t *testing.T) {
 	keyGenerator := mock.NewMockKeyGenerator(ctrl)
 	keyGenerator.EXPECT().NextKey(gomock.Any()).Return("abcdef")
 
-	handler := command.NewCreateRedirectionHandler(redirectionRepository, keyGenerator)
+	dispatcher := event.NewDispatcher(ctx)
+
+	handler := command.NewCreateRedirectionHandler(redirectionRepository, keyGenerator, dispatcher)
 
 	// WHEN
 	cmd := command.CreateRedirectionCommand{Location: "http://www.google.com"}
@@ -45,7 +48,9 @@ func TestCreateRedirection_InvalidErr(t *testing.T) {
 	keyGenerator := mock.NewMockKeyGenerator(ctrl)
 	keyGenerator.EXPECT().NextKey(gomock.Any()).Return("abcdef")
 
-	handler := command.NewCreateRedirectionHandler(redirectionRepository, keyGenerator)
+	dispatcher := event.NewDispatcher(ctx)
+
+	handler := command.NewCreateRedirectionHandler(redirectionRepository, keyGenerator, dispatcher)
 
 	// WHEN
 	cmd := command.CreateRedirectionCommand{Location: "google.com"}
@@ -67,7 +72,9 @@ func TestCreateRedirection_ConflictErr(t *testing.T) {
 	keyGenerator := mock.NewMockKeyGenerator(ctrl)
 	keyGenerator.EXPECT().NextKey(gomock.Any()).Return("abcdef")
 
-	handler := command.NewCreateRedirectionHandler(redirectionRepository, keyGenerator)
+	dispatcher := event.NewDispatcher(ctx)
+
+	handler := command.NewCreateRedirectionHandler(redirectionRepository, keyGenerator, dispatcher)
 
 	// WHEN
 	cmd := command.CreateRedirectionCommand{Location: "http://www.google.com"}

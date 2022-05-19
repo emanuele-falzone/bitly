@@ -8,6 +8,7 @@ import (
 	"github.com/emanuelefalzone/bitly/internal/adapter/service/grpc"
 	"github.com/emanuelefalzone/bitly/internal/adapter/service/grpc/pb"
 	"github.com/emanuelefalzone/bitly/internal/application"
+	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 	"github.com/emanuelefalzone/bitly/internal/service"
 	"github.com/stretchr/testify/assert"
@@ -40,9 +41,11 @@ func TestRedirectionCreate(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.test, func(t *testing.T) {
 			ctx := context.Background()
-			repository := memory.NewRedirectionRepository()
+			redirectionRepository := memory.NewRedirectionRepository()
+			eventRepository := memory.NewEventRepository()
 			generator := service.NewRandomKeyGenerator(0)
-			application := application.New(repository, generator)
+			dispatcher := event.NewDispatcher(ctx)
+			application := application.New(redirectionRepository, eventRepository, generator, dispatcher)
 			server := grpc.NewServer(application)
 
 			_, err := server.CreateRedirection(ctx, &pb.CreateRedirectionRequest{Location: tc.location})
@@ -88,13 +91,15 @@ func TestRedirectionDelete(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.test, func(t *testing.T) {
 			ctx := context.Background()
-			repository := memory.NewRedirectionRepository()
+			redirectionRepository := memory.NewRedirectionRepository()
+			eventRepository := memory.NewEventRepository()
 			generator := service.NewRandomKeyGenerator(0)
-			application := application.New(repository, generator)
+			dispatcher := event.NewDispatcher(ctx)
+			application := application.New(redirectionRepository, eventRepository, generator, dispatcher)
 			server := grpc.NewServer(application)
 
 			if tc.alreadyExists {
-				repository.Create(ctx, redirection.Redirection{Key: tc.key, Location: tc.location})
+				redirectionRepository.Create(ctx, redirection.Redirection{Key: tc.key, Location: tc.location})
 			}
 
 			_, err := server.DeleteRedirection(ctx, &pb.DeleteRedirectionRequest{Key: tc.key})
@@ -140,13 +145,15 @@ func TestGetRedirectionLocation(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.test, func(t *testing.T) {
 			ctx := context.Background()
-			repository := memory.NewRedirectionRepository()
+			redirectionRepository := memory.NewRedirectionRepository()
+			eventRepository := memory.NewEventRepository()
 			generator := service.NewRandomKeyGenerator(0)
-			application := application.New(repository, generator)
+			dispatcher := event.NewDispatcher(ctx)
+			application := application.New(redirectionRepository, eventRepository, generator, dispatcher)
 			server := grpc.NewServer(application)
 
 			if tc.alreadyExists {
-				repository.Create(ctx, redirection.Redirection{Key: tc.key, Location: tc.location})
+				redirectionRepository.Create(ctx, redirection.Redirection{Key: tc.key, Location: tc.location})
 			}
 
 			_, err := server.GetRedirectionLocation(ctx, &pb.GetRedirectionLocationRequest{Key: tc.key})

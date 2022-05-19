@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/emanuelefalzone/bitly/internal"
+	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 )
 
@@ -13,10 +14,11 @@ type DeleteRedirectionCommand struct {
 
 type DeleteRedirectionHandler struct {
 	redirections redirection.Repository
+	dispatcher   *event.Dispatcher
 }
 
-func NewDeleteRedirectionHandler(redirections redirection.Repository) DeleteRedirectionHandler {
-	return DeleteRedirectionHandler{redirections: redirections}
+func NewDeleteRedirectionHandler(redirections redirection.Repository, dispatcher *event.Dispatcher) DeleteRedirectionHandler {
+	return DeleteRedirectionHandler{redirections: redirections, dispatcher: dispatcher}
 }
 
 func (h DeleteRedirectionHandler) Handle(ctx context.Context, cmd DeleteRedirectionCommand) error {
@@ -35,6 +37,9 @@ func (h DeleteRedirectionHandler) Handle(ctx context.Context, cmd DeleteRedirect
 	if err != nil {
 		return &internal.Error{Op: "DeleteRedirectionHandler: Handle", Err: err}
 	}
+
+	// Dispatch deleted event
+	h.dispatcher.Dispatch(ctx, event.Deleted(val))
 
 	// Return nil to indicate that the command was succesfully executed
 	return nil

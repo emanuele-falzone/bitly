@@ -6,6 +6,7 @@ import (
 
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/application/query"
+	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 	"github.com/emanuelefalzone/bitly/test/mock"
 	"github.com/golang/mock/gomock"
@@ -21,7 +22,9 @@ func TestRedirectionLocation(t *testing.T) {
 	redirectionRepository := mock.NewMockRedirectionRepository(ctrl)
 	redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(redirection.New("abcdef", "http:/www.google.com"))
 
-	handler := query.NewRedirectionLocationHandler(redirectionRepository)
+	dispatcher := event.NewDispatcher(ctx)
+
+	handler := query.NewRedirectionLocationHandler(redirectionRepository, dispatcher)
 
 	// WHEN
 	query := query.RedirectionLocationQuery{Key: "abcdef"}
@@ -41,7 +44,9 @@ func TestRedirectionLocation_NotFoundErr(t *testing.T) {
 	redirectionRepository := mock.NewMockRedirectionRepository(ctrl)
 	redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(redirection.Redirection{}, &internal.Error{Code: internal.ErrNotFound})
 
-	handler := query.NewRedirectionLocationHandler(redirectionRepository)
+	dispatcher := event.NewDispatcher(ctx)
+
+	handler := query.NewRedirectionLocationHandler(redirectionRepository, dispatcher)
 
 	// WHEN
 	query := query.RedirectionLocationQuery{Key: "abcdef"}

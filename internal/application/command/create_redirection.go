@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/emanuelefalzone/bitly/internal"
+	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 	"github.com/emanuelefalzone/bitly/internal/service"
 )
@@ -19,10 +20,11 @@ type CreateRedirectionCommandResult struct {
 type CreateRedirectionHandler struct {
 	redirections redirection.Repository
 	generator    service.KeyGenerator
+	dispatcher   *event.Dispatcher
 }
 
-func NewCreateRedirectionHandler(redirections redirection.Repository, generator service.KeyGenerator) CreateRedirectionHandler {
-	return CreateRedirectionHandler{redirections: redirections, generator: generator}
+func NewCreateRedirectionHandler(redirections redirection.Repository, generator service.KeyGenerator, dispatcher *event.Dispatcher) CreateRedirectionHandler {
+	return CreateRedirectionHandler{redirections: redirections, generator: generator, dispatcher: dispatcher}
 }
 
 func (h CreateRedirectionHandler) Handle(ctx context.Context, cmd CreateRedirectionCommand) (*CreateRedirectionCommandResult, error) {
@@ -44,6 +46,9 @@ func (h CreateRedirectionHandler) Handle(ctx context.Context, cmd CreateRedirect
 	if err != nil {
 		return nil, &internal.Error{Op: "CreateRedirectionHandler: Handle", Err: err}
 	}
+
+	// Dispatch created event
+	h.dispatcher.Dispatch(ctx, event.Created(val))
 
 	// Return the key of the newly created redirection
 	return &CreateRedirectionCommandResult{Key: key}, nil

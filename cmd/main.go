@@ -1,19 +1,24 @@
 package main
 
 import (
+	"context"
 	"log"
 	"strconv"
 	"time"
 
 	"github.com/emanuelefalzone/bitly/internal"
+	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/memory"
 	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/redis"
 	"github.com/emanuelefalzone/bitly/internal/adapter/service/grpc"
 	"github.com/emanuelefalzone/bitly/internal/application"
+	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/internal/service"
 )
 
 func main() {
 	log.Println(`Starting`)
+
+	ctx := context.Background()
 
 	redisConnectionString, err := internal.GetEnv("REDIS_CONNECTION_STRING")
 	if err != nil {
@@ -30,9 +35,16 @@ func main() {
 		log.Fatal(err)
 	}
 
+	eventRepository := memory.NewEventRepository()
+
 	keyGenerator := service.NewRandomKeyGenerator(time.Now().Unix())
 
-	app := application.New(redirectionRepository, keyGenerator)
+	logger := service.NewEventLogger()
+
+	dispatcher := event.NewDispatcher(ctx)
+	dispatcher.Register(logger)
+
+	app := application.New(redirectionRepository, eventRepository, keyGenerator, dispatcher)
 
 	intGrpcPort, err := strconv.Atoi(grpcPort)
 	if err != nil {
@@ -40,5 +52,8 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer(app)
-	grpcServer.Start(intGrpcPort)
+	err = grpcServer.Start(intGrpcPort)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

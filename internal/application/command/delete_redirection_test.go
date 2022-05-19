@@ -6,6 +6,7 @@ import (
 
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/application/command"
+	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 	"github.com/emanuelefalzone/bitly/test/mock"
 	"github.com/golang/mock/gomock"
@@ -22,7 +23,9 @@ func TestDeleteRedirection(t *testing.T) {
 	redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(redirection.New("abcdef", "http:/www.google.com"))
 	redirectionRepository.EXPECT().Delete(gomock.Any(), gomock.Any()).Return(nil)
 
-	handler := command.NewDeleteRedirectionHandler(redirectionRepository)
+	dispatcher := event.NewDispatcher(ctx)
+
+	handler := command.NewDeleteRedirectionHandler(redirectionRepository, dispatcher)
 
 	// WHEN
 	cmd := command.DeleteRedirectionCommand{Key: "abcdef"}
@@ -41,7 +44,9 @@ func TestDeleteRedirection_NotFoundErr(t *testing.T) {
 	redirectionRepository := mock.NewMockRedirectionRepository(ctrl)
 	redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(redirection.Redirection{}, &internal.Error{Code: internal.ErrNotFound})
 
-	handler := command.NewDeleteRedirectionHandler(redirectionRepository)
+	dispatcher := event.NewDispatcher(ctx)
+
+	handler := command.NewDeleteRedirectionHandler(redirectionRepository, dispatcher)
 
 	// WHEN
 	cmd := command.DeleteRedirectionCommand{Key: "abcdef"}
@@ -61,7 +66,9 @@ func TestDeleteRedirection_AnotherNotFoundErr(t *testing.T) {
 	redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(redirection.New("abcdef", "http:/www.google.com"))
 	redirectionRepository.EXPECT().Delete(gomock.Any(), gomock.Any()).Return(&internal.Error{Code: internal.ErrNotFound})
 
-	handler := command.NewDeleteRedirectionHandler(redirectionRepository)
+	dispatcher := event.NewDispatcher(ctx)
+
+	handler := command.NewDeleteRedirectionHandler(redirectionRepository, dispatcher)
 
 	// WHEN
 	cmd := command.DeleteRedirectionCommand{Key: "abcdef"}
