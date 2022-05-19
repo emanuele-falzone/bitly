@@ -12,6 +12,7 @@ import (
 	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/memory"
 	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/redis"
 	"github.com/emanuelefalzone/bitly/internal/application"
+	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/internal/service"
 	"github.com/emanuelefalzone/bitly/test/acceptance/client"
 	"github.com/emanuelefalzone/bitly/test/acceptance/driver"
@@ -36,8 +37,12 @@ func TestAcceptance_GoDriver_InMemoryRepository(t *testing.T) {
 	}
 
 	redirectionRepository := memory.NewRedirectionRepository()
+	eventRepository := memory.NewEventRepository()
+
 	keyGenerator := service.NewRandomKeyGenerator(time.Now().Unix())
-	application_ := application.New(redirectionRepository, keyGenerator)
+	dispatcher := event.NewDispatcher(ctx)
+	dispatcher.Register(service.NewEventStore(eventRepository))
+	application_ := application.New(redirectionRepository, eventRepository, keyGenerator, dispatcher)
 	driver_ := driver.NewGoDriver(application_)
 
 	status := godog.TestSuite{
@@ -74,8 +79,12 @@ func TestAcceptance_GoDriver_RedisRepository(t *testing.T) {
 		panic(err)
 	}
 
+	eventRepository := memory.NewEventRepository()
+
 	keyGenerator := service.NewRandomKeyGenerator(time.Now().Unix())
-	application_ := application.New(redirectionRepository, keyGenerator)
+	dispatcher := event.NewDispatcher(ctx)
+	dispatcher.Register(service.NewEventStore(eventRepository))
+	application_ := application.New(redirectionRepository, eventRepository, keyGenerator, dispatcher)
 	driver_ := driver.NewGoDriver(application_)
 
 	status := godog.TestSuite{
