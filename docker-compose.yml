@@ -16,9 +16,3 @@ services:
     command: -plaintext bitly:4000
     depends_on:
       - bitly
-
-  redis:
-    image: redis:6.2.7-alpine
-    hostname: redis
-    ports:
-      - 6379:6379

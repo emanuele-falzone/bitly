@@ -8,7 +8,6 @@ import (
 
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/memory"
-	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/redis"
 	"github.com/emanuelefalzone/bitly/internal/adapter/service/grpc"
 	"github.com/emanuelefalzone/bitly/internal/application"
 	"github.com/emanuelefalzone/bitly/internal/domain/event"
@@ -20,21 +19,12 @@ func main() {
 
 	ctx := context.Background()
 
-	redisConnectionString, err := internal.GetEnv("REDIS_CONNECTION_STRING")
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	grpcPort, err := internal.GetEnv("GRPC_PORT")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	redirectionRepository, err := redis.NewRedirectionRepository(redisConnectionString)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	redirectionRepository := memory.NewRedirectionRepository()
 	eventRepository := memory.NewEventRepository()
 
 	keyGenerator := service.NewRandomKeyGenerator(time.Now().Unix())
