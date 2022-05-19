@@ -32,8 +32,8 @@ build: generate-grpc-server
 	go build -v ./cmd/main.go
 
 run-unit-tests: generate-repository-mock generate-key-generator-mock
-	CVPKG=$(go list ./internal/... | grep -v pb | tr '\n' ',') 
-	go test ./internal/... -coverpkg=$CVPKG -coverprofile coverage.out -v 
+	CVPKG=$(go list ./internal/... | grep -v pb | tr '\n' ',')
+	go test ./internal/... -coverpkg=$(CVPKG) -coverprofile coverage.out -v 
 	go tool cover -html coverage.out -o coverage.html
 
 run-integration-tests:
