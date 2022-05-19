@@ -4,12 +4,22 @@ generate-repository-mock:
 		-package=mock \
 		-mock_names=Repository=MockRedirectionRepository \
 		github.com/emanuelefalzone/bitly/internal/domain/redirection Repository
+	mockgen -destination=./test/mock/event_repository.go \
+		-package=mock \
+		-mock_names=Repository=MockEventRepository \
+		github.com/emanuelefalzone/bitly/internal/domain/event Repository
 
 generate-key-generator-mock:
 	go install github.com/golang/mock/mockgen
 	mockgen -destination=./test/mock/key_generator_service.go \
 		-package=mock \
 		github.com/emanuelefalzone/bitly/internal/service KeyGenerator
+
+generate-event-listener-mock:
+	go install github.com/golang/mock/mockgen
+	mockgen -destination=./test/mock/event_listener.go \
+		-package=mock \
+		github.com/emanuelefalzone/bitly/internal/domain/event Listener
 
 generate-grpc-server:
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
@@ -31,7 +41,7 @@ generate-grpc-server-documentation:
 build: generate-grpc-server
 	go build -v ./cmd/main.go
 
-run-unit-tests: generate-repository-mock generate-key-generator-mock
+run-unit-tests: generate-repository-mock generate-repository-mock generate-key-generator-mock
 	CVPKG=$(go list ./internal/... | grep -v pb | tr '\n' ',')
 	go test ./internal/... -coverpkg=$(CVPKG) -coverprofile coverage.out -v 
 	go tool cover -html coverage.out -o coverage.html
