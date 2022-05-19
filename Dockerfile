@@ -1,5 +1,9 @@
 FROM golang:1.18.2-alpine3.15 AS build
 
+# Install Alpine Dependencies
+RUN apk update && apk upgrade && \
+    apk add --no-cache make protoc
+
 # Set working directory
 WORKDIR /app
 
@@ -13,7 +17,7 @@ RUN go mod download
 COPY . .
 
 # Build project
-RUN go build -v ./cmd/main.go
+RUN make build
 
 # Start from fresh image
 FROM alpine:3.15
