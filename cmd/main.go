@@ -40,9 +40,11 @@ func main() {
 	keyGenerator := service.NewRandomKeyGenerator(time.Now().Unix())
 
 	logger := service.NewEventLogger()
+	eventStore := service.NewEventStore(eventRepository)
 
 	dispatcher := event.NewDispatcher(ctx)
 	dispatcher.Register(logger)
+	dispatcher.Register(eventStore)
 
 	app := application.New(redirectionRepository, eventRepository, keyGenerator, dispatcher)
 
