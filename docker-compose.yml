@@ -9,6 +9,14 @@ services:
     ports:
       - 4000:4000
 
+  grpc-client:
+    image: fullstorydev/grpcui:v1.3.0
+    ports:
+      - 8080:8080
+    command: -plaintext bitly:4000
+    depends_on:
+      - bitly
+
   redis:
     image: redis:6.2.7-alpine
     hostname: redis
