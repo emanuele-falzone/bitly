@@ -55,3 +55,14 @@ func (d *GrpcDriver) GetRedirectionLocation(ctx context.Context, key string) (st
 	}
 	return response.Location, nil
 }
+
+func (d *GrpcDriver) GetRedirectionCount(ctx context.Context, key string) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	response, err := d.client.GetRedirectionCount(ctx, &pb.GetRedirectionCountRequest{Key: key})
+	if err != nil {
+		return 0, err
+	}
+	return int(response.Count), nil
+}

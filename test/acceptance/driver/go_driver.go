@@ -57,3 +57,17 @@ func (d *GoDriver) GetRedirectionLocation(ctx context.Context, key string) (stri
 	// Return location
 	return value.Location, nil
 }
+
+func (d *GoDriver) GetRedirectionCount(ctx context.Context, key string) (int, error) {
+	// Create a new RedirectionCountQuery
+	q := query.RedirectionCountQuery{Key: key}
+
+	// Query execution
+	value, err := d.application.Queries.RedirectionCount.Handle(ctx, q)
+	if err != nil {
+		return 0, err
+	}
+
+	// Return Count
+	return value.Count, nil
+}
