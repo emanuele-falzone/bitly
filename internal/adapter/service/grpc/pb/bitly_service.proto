@@ -31,6 +31,16 @@ message GetRedirectionLocationResponse {
   string location = 1;
 }
 
+message GetRedirectionCountRequest {
+  // The key of the redirection that we want to know the numer of times has been read
+  string key = 1;
+}
+
+message GetRedirectionCountResponse {
+  // The numer of times the redirection has been read
+  int64 count = 1;
+}
+
 // BitlyService is the service for handling url redirections
 service BitlyService {
   // Create a new key for the given location
@@ -39,4 +49,6 @@ service BitlyService {
   rpc DeleteRedirection (DeleteRedirectionRequest) returns (DeleteRedirectionResponse);
   // Get the location associated to a given key
   rpc GetRedirectionLocation (GetRedirectionLocationRequest) returns (GetRedirectionLocationResponse);
+  // Get the numer of times that a given redirection has been read
+  rpc GetRedirectionCount (GetRedirectionCountRequest) returns (GetRedirectionCountResponse);
 };
