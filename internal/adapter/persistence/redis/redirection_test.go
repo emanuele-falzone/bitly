@@ -1,3 +1,5 @@
+//go:build integration
+
 package redis_test
 
 import (
@@ -5,194 +7,221 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/alicebob/miniredis/v2"
 	"github.com/emanuelefalzone/bitly/internal"
+	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/memory"
 	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/redis"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 	"github.com/stretchr/testify/assert"
+
+	_redis "github.com/go-redis/redis/v8"
 )
 
-func TestRedisRepository_New(t *testing.T) {
-	// WHEN
-	_, err := redis.NewRedirectionRepository(fmt.Sprintf("http://localhost"))
-
-	// THEN
-	assert.Equal(t, internal.ErrInvalid, internal.ErrorCode(err))
+func TestInMemoryRedirectionRepository(t *testing.T) {
+	RunTestRedirectionRepository(t, func() (redirection.Repository, error) {
+		return memory.NewRedirectionRepository(), nil
+	})
 }
 
-func TestRedisRepository_Create(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	s, err := miniredis.Run()
-	assert.Equal(t, nil, err)
-	defer s.Close()
-	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
-	assert.Equal(t, nil, err)
+func TestRedisRedirectionRepository(t *testing.T) {
+	RunTestRedirectionRepository(t, func() (redirection.Repository, error) {
+		// Create new context
+		ctx := context.Background()
 
-	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}
+		// Read redis connection string from env
+		connectionString, err := internal.GetEnv("INTEGRATION_REDIS_CONNECTION_STRING")
+		if err != nil {
+			panic(err)
+		}
 
-	// WHEN
-	err = repository.Create(ctx, value)
+		// Parse connection string and check for errors
+		err = clearRedis(ctx, connectionString)
+		if err != nil {
+			return nil, err
+		}
 
-	// THEN
-	assert.Equal(t, nil, err)
+		return redis.NewRedirectionRepository(connectionString)
+	})
 }
 
-func TestRedisRepository_CreateConflictErr(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	s, err := miniredis.Run()
-	assert.Equal(t, nil, err)
-	defer s.Close()
-	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
-	assert.Equal(t, nil, err)
+func RunTestRedirectionRepository(t *testing.T, newRepository func() (redirection.Repository, error)) {
+	// Build our needed testcase data struct
+	type testCase struct {
+		test string
+		fn   func(*testing.T, func() (redirection.Repository, error))
+	}
+	// Create new test cases
+	testCases := []testCase{
+		{
+			test: "TestCreate",
+			fn:   _TestRedirectionCreate,
+		}, {
+			test: "TestDelete",
+			fn:   _TestRedirectionDelete,
+		}, {
+			test: "TestFindByKey",
+			fn:   _TestRedirectionFindByKey,
+		},
+	}
 
-	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}
-	value2 := redirection.Redirection{Key: "abcdef", Location: "http://www.apple.com"}
+	for _, tc := range testCases {
+		// Run Tests
+		t.Run(tc.test, func(t *testing.T) {
+			tc.fn(t, newRepository)
+		})
+	}
 
-	err = repository.Create(ctx, value)
-	assert.Equal(t, nil, err)
-
-	// WHEN
-	err = repository.Create(ctx, value2)
-
-	// THEN
-	assert.Equal(t, internal.ErrConflict, internal.ErrorCode(err))
 }
 
-func TestRedisRepository_CreateInternalErr(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	s, err := miniredis.Run()
-	assert.Equal(t, nil, err)
-	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
-	assert.Equal(t, nil, err)
+func _TestRedirectionCreate(t *testing.T, newRepository func() (redirection.Repository, error)) {
+	// Create a redirection that we are going to use in our test cases
+	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
 
-	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}
+	// Build our needed testcase data struct
+	type testCase struct {
+		test            string
+		alreadyExists   bool
+		expectedErr     bool
+		expectedErrCode string
+	}
+	// Create new test cases
+	testCases := []testCase{
+		{
+			test:          "New Redirection",
+			alreadyExists: false,
+			expectedErr:   false,
+		}, {
+			test:            "Redirection already exists",
+			alreadyExists:   true,
+			expectedErr:     true,
+			expectedErrCode: internal.ErrConflict,
+		},
+	}
 
-	err = repository.Create(ctx, value)
-	assert.Equal(t, nil, err)
+	for _, tc := range testCases {
+		t.Run(tc.test, func(t *testing.T) {
+			ctx := context.Background()
+			repository, _ := newRepository()
 
-	// WHEN
-	s.Close()
-	err = repository.Create(ctx, value)
+			if tc.alreadyExists {
+				repository.Create(ctx, value)
+			}
 
-	// THEN
-	assert.Equal(t, internal.ErrInternal, internal.ErrorCode(err))
+			err := repository.Create(ctx, value)
+
+			if tc.expectedErr {
+				assert.Equal(t, tc.expectedErrCode, internal.ErrorCode(err))
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
 }
 
-func TestRedisRepository_Delete(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	s, err := miniredis.Run()
-	assert.Equal(t, nil, err)
-	defer s.Close()
-	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
-	assert.Equal(t, nil, err)
+func _TestRedirectionDelete(t *testing.T, newRepository func() (redirection.Repository, error)) {
+	// Create a redirection that we are going to use in our test cases
+	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
 
-	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}
+	// Build our needed testcase data struct
+	type testCase struct {
+		test            string
+		alreadyExists   bool
+		expectedErr     bool
+		expectedErrCode string
+	}
+	// Create new test cases
+	testCases := []testCase{
+		{
+			test:          "Existing Redirection",
+			alreadyExists: true,
+			expectedErr:   false,
+		}, {
+			test:            "Redirection does not exists",
+			alreadyExists:   false,
+			expectedErr:     true,
+			expectedErrCode: internal.ErrNotFound,
+		},
+	}
 
-	err = repository.Create(ctx, value)
-	assert.Equal(t, nil, err)
+	for _, tc := range testCases {
+		t.Run(tc.test, func(t *testing.T) {
+			ctx := context.Background()
+			repository, _ := newRepository()
 
-	// WHEN
-	err = repository.Delete(ctx, value)
+			if tc.alreadyExists {
+				repository.Create(ctx, value)
+			}
 
-	// THEN
-	assert.Equal(t, nil, err)
+			err := repository.Delete(ctx, value)
+
+			if tc.expectedErr {
+				assert.Equal(t, tc.expectedErrCode, internal.ErrorCode(err))
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
 }
 
-func TestRedisRepository_DeleteErrNotFound(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	s, err := miniredis.Run()
-	assert.Equal(t, nil, err)
-	defer s.Close()
-	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
-	assert.Equal(t, nil, err)
+func _TestRedirectionFindByKey(t *testing.T, newRepository func() (redirection.Repository, error)) {
+	// Create a redirection that we are going to use in our test cases
+	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
 
-	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}
+	// Build our needed testcase data struct
+	type testCase struct {
+		test            string
+		alreadyExists   bool
+		expectedErr     bool
+		expectedErrCode string
+	}
+	// Create new test cases
+	testCases := []testCase{
+		{
+			test:          "Existing Redirection",
+			alreadyExists: true,
+			expectedErr:   false,
+		}, {
+			test:            "Redirection does not exists",
+			alreadyExists:   false,
+			expectedErr:     true,
+			expectedErrCode: internal.ErrNotFound,
+		},
+	}
 
-	// WHEN
-	err = repository.Delete(ctx, value)
+	for _, tc := range testCases {
+		t.Run(tc.test, func(t *testing.T) {
+			ctx := context.Background()
+			repository, _ := newRepository()
 
-	// THEN
-	assert.Equal(t, internal.ErrNotFound, internal.ErrorCode(err))
+			if tc.alreadyExists {
+				repository.Create(ctx, value)
+			}
+
+			result, err := repository.FindByKey(ctx, value.Key)
+
+			fmt.Println(result)
+			if tc.expectedErr {
+				assert.Equal(t, tc.expectedErrCode, internal.ErrorCode(err))
+			} else {
+				assert.Nil(t, err)
+				assert.Equal(t, value.Key, result.Key)
+				assert.Equal(t, value.Location, result.Location)
+			}
+		})
+	}
 }
 
-func TestRedisRepository_DeleteErrInternal(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	s, err := miniredis.Run()
-	assert.Equal(t, nil, err)
-	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
-	assert.Equal(t, nil, err)
+func clearRedis(ctx context.Context, connectionString string) error {
+	// Parse connection string and check for errors
+	opt, err := _redis.ParseURL(connectionString)
+	if err != nil {
+		return err
+	}
 
-	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}
+	// Create a new redis client
+	client := _redis.NewClient(opt)
 
-	// WHEN
-	s.Close()
-	err = repository.Delete(ctx, value)
+	// Flush all keys
+	err = client.FlushAll(ctx).Err()
 
-	// THEN
-	assert.Equal(t, internal.ErrInternal, internal.ErrorCode(err))
-}
-
-func TestRedisRepository_FindByKey(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	s, err := miniredis.Run()
-	assert.Equal(t, nil, err)
-	defer s.Close()
-	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
-	assert.Equal(t, nil, err)
-
-	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}
-
-	err = repository.Create(ctx, value)
-	assert.Equal(t, nil, err)
-
-	// WHEN
-	value, err = repository.FindByKey(ctx, value.Key)
-
-	// THEN
-	assert.Equal(t, nil, err)
-	assert.Equal(t, value.Key, "abcdef")
-	assert.Equal(t, value.Location, "http://www.google.com")
-}
-
-func TestRedisRepository_FindByKeyErrNotFound(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	s, err := miniredis.Run()
-	assert.Equal(t, nil, err)
-	defer s.Close()
-	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
-	assert.Equal(t, nil, err)
-
-	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}
-
-	// WHEN
-	value, err = repository.FindByKey(ctx, value.Key)
-
-	// THEN
-	assert.Equal(t, internal.ErrNotFound, internal.ErrorCode(err))
-}
-
-func TestRedisRepository_FindByKeyErrInternal(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	s, err := miniredis.Run()
-	assert.Equal(t, nil, err)
-	repository, err := redis.NewRedirectionRepository(fmt.Sprintf("redis://%s", s.Addr()))
-	assert.Equal(t, nil, err)
-
-	value := redirection.Redirection{Key: "abcdef", Location: "http://www.google.com"}
-
-	// WHEN
-	s.Close()
-	value, err = repository.FindByKey(ctx, value.Key)
-
-	// THEN
-	assert.Equal(t, internal.ErrInternal, internal.ErrorCode(err))
+	return err
 }

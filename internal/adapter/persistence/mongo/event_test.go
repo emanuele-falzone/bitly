@@ -1,4 +1,6 @@
-package integration_test
+//go:build integration
+
+package mongo_test
 
 import (
 	"context"
@@ -9,8 +11,10 @@ import (
 	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/mongo"
 	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
-	"github.com/emanuelefalzone/bitly/test/util"
 	"github.com/stretchr/testify/assert"
+
+	_mongo "go.mongodb.org/mongo-driver/mongo"
+	_mongo_options "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func TestInMemoryEventRepository(t *testing.T) {
@@ -31,7 +35,7 @@ func TestRedisEventRepository(t *testing.T) {
 		}
 
 		// Parse connection string and check for errors
-		err = util.ClearMongo(ctx, connectionString, mongo.DB)
+		err = clearMongo(ctx, connectionString, mongo.DB)
 		if err != nil {
 			return nil, err
 		}
@@ -143,4 +147,24 @@ func _TestEventFindByRedirection(t *testing.T, newRepository func() (event.Repos
 			}
 		})
 	}
+}
+
+func clearMongo(ctx context.Context, connectionString, database string) error {
+	// Create new mongo client with the given connection string
+	client, err := _mongo.NewClient(_mongo_options.Client().ApplyURI(connectionString))
+	if err != nil {
+		return err
+	}
+
+	// Connect with the mongo instance
+	err = client.Connect(context.Background())
+	if err != nil {
+		return err
+	}
+
+	// Select database
+	db := client.Database(database)
+
+	// Drop db
+	return db.Drop(context.Background())
 }

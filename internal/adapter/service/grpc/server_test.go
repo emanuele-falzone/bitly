@@ -1,230 +1,101 @@
+//go:build e2e
+
 package grpc_test
 
 import (
 	"context"
+	"os"
 	"testing"
 
-	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/memory"
-	"github.com/emanuelefalzone/bitly/internal/adapter/service/grpc"
+	"github.com/cucumber/godog"
+	"github.com/cucumber/godog/colors"
+	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/adapter/service/grpc/pb"
-	"github.com/emanuelefalzone/bitly/internal/application"
-	"github.com/emanuelefalzone/bitly/internal/domain/event"
-	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
-	"github.com/emanuelefalzone/bitly/internal/service"
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"github.com/emanuelefalzone/bitly/test/acceptance/client"
+	"github.com/emanuelefalzone/bitly/test/acceptance/driver"
+	"github.com/emanuelefalzone/bitly/test/acceptance/scenario"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
-func TestRedirectionCreate(t *testing.T) {
-	// Build our needed testcase data struct
-	type testCase struct {
-		test            string
-		location        string
-		expectedErr     bool
-		expectedErrCode codes.Code
-	}
-	// Create new test cases
-	testCases := []testCase{
-		{
-			test:        "Valid location",
-			location:    "http://www.google.com",
-			expectedErr: false,
-		}, {
-			test:            "Invalid location",
-			location:        "google",
-			expectedErr:     true,
-			expectedErrCode: codes.InvalidArgument,
-		},
+/*
+This serves as an end to end test for testing user requirements
+*/
+
+func TestAcceptance_GrpcDriver_RedisRepository(t *testing.T) {
+
+	ctx := context.Background()
+
+	var opts = godog.Options{
+		Format:   "pretty",
+		Output:   colors.Colored(os.Stdout),
+		Paths:    []string{"./feature"},
+		TestingT: t,
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.test, func(t *testing.T) {
-			ctx := context.Background()
-			redirectionRepository := memory.NewRedirectionRepository()
-			eventRepository := memory.NewEventRepository()
-			generator := service.NewRandomKeyGenerator(0)
-			dispatcher := event.NewDispatcher(ctx)
-			application := application.New(redirectionRepository, eventRepository, generator, dispatcher)
-			server := grpc.NewServer(application)
+	serverAddress, err := internal.GetEnv("E2E_GRPC_SERVER")
+	if err != nil {
+		panic(err)
+	}
 
-			_, err := server.CreateRedirection(ctx, &pb.CreateRedirectionRequest{Location: tc.location})
+	driver_, err := NewGrpcDriver(serverAddress)
+	if err != nil {
+		panic(err)
+	}
 
-			if tc.expectedErr {
-				err, ok := status.FromError(err)
-				assert.True(t, ok)
-				assert.Equal(t, tc.expectedErrCode, err.Code())
-			} else {
-				assert.Nil(t, err)
-			}
-		})
+	status := godog.TestSuite{
+		Name: "Acceptance tests using go driver and redis repository",
+		ScenarioInitializer: scenario.Initialize(func() *client.Client {
+			return client.NewClient(driver_, ctx)
+		}),
+		Options: &opts,
+	}.Run()
+
+	if status != 0 {
+		os.Exit(status)
 	}
 }
 
-func TestRedirectionDelete(t *testing.T) {
-	// Build our needed testcase data struct
-	type testCase struct {
-		test            string
-		location        string
-		key             string
-		alreadyExists   bool
-		expectedErr     bool
-		expectedErrCode codes.Code
-	}
-	// Create new test cases
-	testCases := []testCase{
-		{
-			test:          "Valid location",
-			location:      "http://www.google.com",
-			key:           "short",
-			alreadyExists: true,
-			expectedErr:   false,
-		}, {
-			test:            "Invalid location",
-			location:        "short",
-			alreadyExists:   false,
-			expectedErr:     true,
-			expectedErrCode: codes.NotFound,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.test, func(t *testing.T) {
-			ctx := context.Background()
-			redirectionRepository := memory.NewRedirectionRepository()
-			eventRepository := memory.NewEventRepository()
-			generator := service.NewRandomKeyGenerator(0)
-			dispatcher := event.NewDispatcher(ctx)
-			application := application.New(redirectionRepository, eventRepository, generator, dispatcher)
-			server := grpc.NewServer(application)
-
-			if tc.alreadyExists {
-				redirectionRepository.Create(ctx, redirection.Redirection{Key: tc.key, Location: tc.location})
-			}
-
-			_, err := server.DeleteRedirection(ctx, &pb.DeleteRedirectionRequest{Key: tc.key})
-
-			if tc.expectedErr {
-				err, ok := status.FromError(err)
-				assert.True(t, ok)
-				assert.Equal(t, tc.expectedErrCode, err.Code())
-			} else {
-				assert.Nil(t, err)
-			}
-		})
-	}
+// The GrpcDriver interacts with the Grpc server
+type GrpcDriver struct {
+	client pb.BitlyServiceClient
 }
 
-func TestGetRedirectionLocation(t *testing.T) {
-	// Build our needed testcase data struct
-	type testCase struct {
-		test            string
-		location        string
-		key             string
-		alreadyExists   bool
-		expectedErr     bool
-		expectedErrCode codes.Code
-	}
-	// Create new test cases
-	testCases := []testCase{
-		{
-			test:          "Valid location",
-			location:      "http://www.google.com",
-			key:           "short",
-			alreadyExists: true,
-			expectedErr:   false,
-		}, {
-			test:            "Invalid location",
-			location:        "short",
-			alreadyExists:   false,
-			expectedErr:     true,
-			expectedErrCode: codes.NotFound,
-		},
+func NewGrpcDriver(serverAddress string) (driver.Driver, error) {
+	conn, err := grpc.Dial(serverAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, &internal.Error{Code: internal.ErrInternal, Err: err}
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.test, func(t *testing.T) {
-			ctx := context.Background()
-			redirectionRepository := memory.NewRedirectionRepository()
-			eventRepository := memory.NewEventRepository()
-			generator := service.NewRandomKeyGenerator(0)
-			dispatcher := event.NewDispatcher(ctx)
-			application := application.New(redirectionRepository, eventRepository, generator, dispatcher)
-			server := grpc.NewServer(application)
+	client := pb.NewBitlyServiceClient(conn)
 
-			if tc.alreadyExists {
-				redirectionRepository.Create(ctx, redirection.Redirection{Key: tc.key, Location: tc.location})
-			}
-
-			_, err := server.GetRedirectionLocation(ctx, &pb.GetRedirectionLocationRequest{Key: tc.key})
-
-			if tc.expectedErr {
-				err, ok := status.FromError(err)
-				assert.True(t, ok)
-				assert.Equal(t, tc.expectedErrCode, err.Code())
-			} else {
-				assert.Nil(t, err)
-			}
-		})
-	}
+	return &GrpcDriver{client: client}, nil
 }
 
-func TestGetRedirectionCount(t *testing.T) {
-	// Build our needed testcase data struct
-	type testCase struct {
-		test            string
-		location        string
-		key             string
-		alreadyExists   bool
-		count           int
-		expectedErr     bool
-		expectedErrCode codes.Code
+func (d *GrpcDriver) CreateRedirection(ctx context.Context, location string) (string, error) {
+	response, err := d.client.CreateRedirection(ctx, &pb.CreateRedirectionRequest{Location: location})
+	if err != nil {
+		return "", err
 	}
-	// Create new test cases
-	testCases := []testCase{
-		{
-			test:          "Valid location",
-			location:      "http://www.google.com",
-			key:           "short",
-			count:         10,
-			alreadyExists: true,
-			expectedErr:   false,
-		}, {
-			test:            "Invalid location",
-			location:        "short",
-			alreadyExists:   false,
-			expectedErr:     true,
-			expectedErrCode: codes.NotFound,
-		},
+	return response.Key, nil
+}
+func (d *GrpcDriver) DeleteRedirection(ctx context.Context, key string) error {
+	_, err := d.client.DeleteRedirection(ctx, &pb.DeleteRedirectionRequest{Key: key})
+	return err
+}
+
+func (d *GrpcDriver) GetRedirectionLocation(ctx context.Context, key string) (string, error) {
+	response, err := d.client.GetRedirectionLocation(ctx, &pb.GetRedirectionLocationRequest{Key: key})
+	if err != nil {
+		return "", err
 	}
+	return response.Location, nil
+}
 
-	for _, tc := range testCases {
-		t.Run(tc.test, func(t *testing.T) {
-			ctx := context.Background()
-			redirectionRepository := memory.NewRedirectionRepository()
-			eventRepository := memory.NewEventRepository()
-			generator := service.NewRandomKeyGenerator(0)
-			dispatcher := event.NewDispatcher(ctx)
-			application := application.New(redirectionRepository, eventRepository, generator, dispatcher)
-			server := grpc.NewServer(application)
-
-			if tc.alreadyExists {
-				redirectionRepository.Create(ctx, redirection.Redirection{Key: tc.key, Location: tc.location})
-				for i := 0; i < tc.count; i++ {
-					eventRepository.Create(ctx, event.Read(redirection.Redirection{Key: tc.key, Location: tc.location}))
-				}
-			}
-
-			result, err := server.GetRedirectionCount(ctx, &pb.GetRedirectionCountRequest{Key: tc.key})
-
-			if tc.expectedErr {
-				err, ok := status.FromError(err)
-				assert.True(t, ok)
-				assert.Equal(t, tc.expectedErrCode, err.Code())
-			} else {
-				assert.Nil(t, err)
-				assert.Equal(t, int64(tc.count), result.Count)
-			}
-		})
+func (d *GrpcDriver) GetRedirectionCount(ctx context.Context, key string) (int, error) {
+	response, err := d.client.GetRedirectionCount(ctx, &pb.GetRedirectionCountRequest{Key: key})
+	if err != nil {
+		return 0, err
 	}
+	return int(response.Count), nil
 }
