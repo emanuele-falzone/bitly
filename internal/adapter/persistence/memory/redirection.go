@@ -3,20 +3,28 @@ package memory
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 )
 
 type InMemoryRedirectionRepository struct {
+	mu           *sync.Mutex
 	redirections map[string]redirection.Redirection
 }
 
 func NewRedirectionRepository() redirection.Repository {
-	return InMemoryRedirectionRepository{redirections: make(map[string]redirection.Redirection)}
+	return &InMemoryRedirectionRepository{
+		mu:           &sync.Mutex{},
+		redirections: make(map[string]redirection.Redirection),
+	}
 }
 
 func (r InMemoryRedirectionRepository) Create(ctx context.Context, a redirection.Redirection) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	// Check if the Key already exists
 	if _, alreadyExists := r.redirections[a.Key]; alreadyExists {
 		// Cannot create a redirection with the same Key return error
@@ -28,6 +36,9 @@ func (r InMemoryRedirectionRepository) Create(ctx context.Context, a redirection
 }
 
 func (r InMemoryRedirectionRepository) Delete(ctx context.Context, a redirection.Redirection) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	// Check if the Key already exists
 	if _, alreadyExists := r.redirections[a.Key]; !alreadyExists {
 		// Cannot delete a redirection that does not exists, return error
@@ -39,6 +50,9 @@ func (r InMemoryRedirectionRepository) Delete(ctx context.Context, a redirection
 }
 
 func (r InMemoryRedirectionRepository) FindByKey(ctx context.Context, key string) (redirection.Redirection, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	// Check if the key exists
 	if redirect, exists := r.redirections[key]; exists {
 		return redirect, nil
