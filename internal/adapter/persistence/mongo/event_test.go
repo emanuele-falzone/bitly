@@ -23,12 +23,12 @@ func TestInMemoryEventRepository(t *testing.T) {
 	})
 }
 
-func TestRedisEventRepository(t *testing.T) {
+func TestMongoEventRepository(t *testing.T) {
 	RunTestEventRepository(t, func() (event.Repository, error) {
 		// Create new context
 		ctx := context.Background()
 
-		// Read redis connection string from env
+		// Read Mongo connection string from env
 		connectionString, err := internal.GetEnv("INTEGRATION_MONGO_CONNECTION_STRING")
 		if err != nil {
 			panic(err)
