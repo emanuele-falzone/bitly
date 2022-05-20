@@ -50,29 +50,28 @@ generate-docs:
 		internal/adapter/service/grpc/pb/bitly_service.proto
 
 build: generate-code
-	go build -v ./cmd/main.go
+	go build -race -v ./cmd/main.go
 
 run-unit-tests: generate-code
 	CVPKG=$(go list ./internal/... | grep -v pb | tr '\n' ',')
-	go test ./internal/... -coverpkg=$(CVPKG) -coverprofile coverage.out -v --tags=unit
-	go tool cover -html coverage.out -o coverage.html
+	go test ./internal/... -count=1 -coverpkg=$(CVPKG) -coverprofile unit-coverage.out -v --tags=unit
+	go tool cover -html unit-coverage.out -o unit-coverage.html
 
 run-acceptance-tests: generate-code
-	go test ./internal/... -v --tags=acceptance
+	go test ./internal/... -count=1 -coverpkg=./internal/... -coverprofile acceptance-coverage.out -v --tags=acceptance
+	go tool cover -html acceptance-coverage.out -o acceptance-coverage.html
 
 run-integration-tests: generate-code
 	docker-compose up -d --build --force-recreate
 	sleep 5
 	INTEGRATION_REDIS_CONNECTION_STRING=redis://localhost:6379 \
 	INTEGRATION_MONGO_CONNECTION_STRING=mongodb://root:example@localhost:27017 \
-		go test ./internal/... --tags=integration -v
+		go test ./internal/... -count=1 -coverpkg=./internal/... -coverprofile integration-coverage.out -v --tags=integration
+	go tool cover -html integration-coverage.out -o integration-coverage.html
 	docker-compose down
-
-
 
 run-e2e-tests: generate-code
 	docker-compose up -d --build --force-recreate
 	sleep 5
-	E2E_GRPC_SERVER=localhost:4000 \
-		go test ./internal/... -v --tags=acceptance
+	E2E_GRPC_SERVER=localhost:6060 E2E_HTTP_SERVER=http://localhost:7070 go test ./internal/... -count=1 -v --tags=e2e
 	docker-compose down
