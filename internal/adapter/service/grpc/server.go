@@ -20,7 +20,8 @@ import (
 
 type Server struct {
 	pb.UnimplementedBitlyServiceServer
-	app *application.Application
+	app    *application.Application
+	server *grpc.Server
 }
 
 func NewServer(app *application.Application) *Server {
@@ -32,15 +33,18 @@ func (s *Server) Start(port int) error {
 	if err != nil {
 		return err
 	}
-	grpcServer := grpc.NewServer()
-	pb.RegisterBitlyServiceServer(grpcServer, s)
+	s.server = grpc.NewServer()
+	pb.RegisterBitlyServiceServer(s.server, s)
 
 	// Register reflection service on gRPC server.
-	reflection.Register(grpcServer)
+	reflection.Register(s.server)
 
-	err = grpcServer.Serve(lis)
-
+	err = s.server.Serve(lis)
 	return err
+}
+
+func (s *Server) Stop() {
+	s.server.GracefulStop()
 }
 
 func (s *Server) CreateRedirection(ctx context.Context, in *pb.CreateRedirectionRequest) (*pb.CreateRedirectionResponse, error) {
