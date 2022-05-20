@@ -10,5 +10,5 @@ Feature: Inspect how many times a short link has been visited
     
     Scenario: The short link does not exist
         Given that I got a short link that does not exist
-        When I navigate to the short link
+        When I ask the system how many times the link has been visited
         Then the system signals that the short link does not exist
