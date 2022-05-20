@@ -29,7 +29,7 @@ func TestAcceptance_GrpcDriver_RedisRepository(t *testing.T) {
 	var opts = godog.Options{
 		Format:   "pretty",
 		Output:   colors.Colored(os.Stdout),
-		Paths:    []string{"./feature"},
+		Paths:    []string{"../../../../test/acceptance/feature"},
 		TestingT: t,
 	}
 
