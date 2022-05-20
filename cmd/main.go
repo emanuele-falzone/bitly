@@ -14,6 +14,7 @@ import (
 	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/mongo"
 	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/redis"
 	"github.com/emanuelefalzone/bitly/internal/adapter/service/grpc"
+	"github.com/emanuelefalzone/bitly/internal/adapter/service/http"
 	"github.com/emanuelefalzone/bitly/internal/application"
 	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
@@ -56,6 +57,18 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Read HTTP_PORT environment variable
+	httpPort, err := internal.GetEnv("HTTP_PORT")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Cast httpPort to int
+	intHttpPort, err := strconv.Atoi(httpPort)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Create redirection repository
 	var redirectionRepository redirection.Repository
 
@@ -69,6 +82,7 @@ func main() {
 		if err != nil {
 			log.Panic(err)
 		}
+		log.Println("Using redis repository.")
 	} else {
 		// Otherwise use a memory repository
 		log.Println(err)
@@ -89,6 +103,7 @@ func main() {
 		if err != nil {
 			log.Panic(err)
 		}
+		log.Println("Using mongo repository.")
 	} else {
 		// Otherwise use a memory repository
 		log.Println(err)
@@ -120,10 +135,22 @@ func main() {
 	// Create a new grpc server
 	grpcServer := grpc.NewServer(app)
 
+	// Create a new http server
+	httpServer := http.NewServer(app)
+
 	// Start grpc server on specified port
 	go func() {
 		log.Printf("Starting GRPC server on port %d.\n", intGrpcPort)
-		err = grpcServer.Start(intGrpcPort)
+		err := grpcServer.Start(intGrpcPort)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	// Start http server on specified port
+	go func() {
+		log.Printf("Starting HTTP server on port %d.\n", intHttpPort)
+		err := httpServer.Start(intHttpPort)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -132,8 +159,15 @@ func main() {
 	// Wait for SIGINT
 	<-Signals
 
+	fmt.Println()
 	log.Println("Shutting down GRPC server.")
 
-	// Grascefully shutdown grps server
+	// Gracesfully shutdown grpc server
 	grpcServer.Stop()
+
+	// Gracesfully shutdown http server
+	log.Println("Shutting down HTTP server.")
+
+	// Grascefully shutdown grps server
+	httpServer.Stop()
 }
