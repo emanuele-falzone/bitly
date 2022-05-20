@@ -2,7 +2,7 @@ FROM golang:1.18.2-alpine3.15 AS build
 
 # Install Alpine Dependencies
 RUN apk update && apk upgrade && \
-    apk add --no-cache make protoc
+    apk add --no-cache make protoc gcc musl-dev
 
 # Set working directory
 WORKDIR /app
@@ -27,12 +27,6 @@ WORKDIR /app
 
 # Copy binary from build stage
 COPY --from=build /app/main /app/main
-
-# Set default value for GRCP_PORT
-ENV GRPC_PORT=4000
-
-# Expose grpc server port
-EXPOSE ${GRPC_PORT}
 
 # Start
 CMD ["./main"]
