@@ -7,9 +7,12 @@ services:
     hostname: bitly
     environment:
       - REDIS_CONNECTION_STRING=redis://redis:6379
-      - INTEGRATION_MONGO_CONNECTION_STRING=mongodb://root:example@localhost:27017
+      - MONGO_CONNECTION_STRING=mongodb://root:example@mongo:27017
+      - GRPC_PORT=6060
+      - HTTP_PORT=7070
     ports:
-      - 4000:4000
+      - 6060:6060
+      - 7070:7070
     depends_on:
       - mongo
       - redis
@@ -18,7 +21,7 @@ services:
     image: fullstorydev/grpcui:v1.3.0
     ports:
       - 8080:8080
-    command: -plaintext bitly:4000
+    command: -plaintext bitly:6060
     depends_on:
       - bitly
 
