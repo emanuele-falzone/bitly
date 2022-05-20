@@ -50,7 +50,7 @@ run-integration-tests:
 	docker-compose -f test/integration/docker-compose.yml up -d
 	sleep 5
 	INTEGRATION_REDIS_CONNECTION_STRING=redis://localhost:6379 \
-		go test ./test/integration/integration_test.go -v
+		go test ./test/integration/redis_integration_test.go -v
 	docker-compose -f test/integration/docker-compose.yml down
 
 run-acceptance-tests:
