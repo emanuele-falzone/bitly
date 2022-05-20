@@ -49,6 +49,12 @@ generate-docs:
 		--doc_out=./docs \
 		internal/adapter/service/grpc/pb/bitly_service.proto
 
+	# Install swag
+	go install github.com/swaggo/swag/cmd/swag
+
+	# Generate documentation for grpc service
+	swag init -d internal/adapter/service/http --generalInfo server.go
+
 build: generate-code
 	go build -race -v ./cmd/main.go
 
