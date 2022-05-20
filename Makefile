@@ -56,7 +56,7 @@ generate-docs:
 	swag init -d internal/adapter/service/http --generalInfo server.go
 
 build: generate-code
-	go build -race -v ./cmd/main.go
+	go build -ldflags "-s -w" -v ./cmd/main.go
 
 run-unit-tests: generate-code
 	CVPKG=$(go list ./internal/... | grep -v pb | tr '\n' ',')
