@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"os"
+	"os/signal"
 	"strconv"
 	"time"
 
@@ -17,9 +20,28 @@ import (
 	"github.com/emanuelefalzone/bitly/internal/service"
 )
 
-func main() {
-	log.Println(`Starting`)
+var (
+	Signals chan os.Signal
+)
 
+func main() {
+	fmt.Println(`
+ _     _ _   _       
+| |   (_) | | |      
+| |__  _| |_| |_   _ 
+| '_ \| | __| | | | |
+| |_) | | |_| | |_| |
+|_.__/|_|\__|_|\__, |
+                __/ |
+               |___/ `)
+
+	// Initialize channel
+	Signals = make(chan os.Signal)
+
+	// Subscribe to SIGINT signals
+	signal.Notify(Signals, os.Interrupt, os.Kill)
+
+	// Create a new context
 	ctx := context.Background()
 
 	// Read GRPC_PORT environment variable
@@ -99,8 +121,19 @@ func main() {
 	grpcServer := grpc.NewServer(app)
 
 	// Start grpc server on specified port
-	err = grpcServer.Start(intGrpcPort)
-	if err != nil {
-		log.Fatal(err)
-	}
+	go func() {
+		log.Printf("Starting GRPC server on port %d.\n", intGrpcPort)
+		err = grpcServer.Start(intGrpcPort)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	// Wait for SIGINT
+	<-Signals
+
+	log.Println("Shutting down GRPC server.")
+
+	// Grascefully shutdown grps server
+	grpcServer.Stop()
 }
