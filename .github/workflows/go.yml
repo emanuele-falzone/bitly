@@ -36,11 +36,14 @@ jobs:
     - name: Unit Tests
       run: make run-unit-tests
     
+    - name: Acceptance Tests
+      run: make run-acceptance-tests
+    
     - name: Integration Tests
       run: make run-integration-tests
 
-    - name: Acceptance Tests
-      run: make run-acceptance-tests
+    - name: E2E Tests
+      run: make run-e2e-tests
 
     - uses: actions/upload-artifact@v3
       with:

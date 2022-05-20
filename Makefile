@@ -54,25 +54,25 @@ build: generate-code
 
 run-unit-tests: generate-code
 	CVPKG=$(go list ./internal/... | grep -v pb | tr '\n' ',')
-	go test ./internal/... -coverpkg=$(CVPKG) -coverprofile coverage.out -v 
+	go test ./internal/... -coverpkg=$(CVPKG) -coverprofile coverage.out -v --tags=unit
 	go tool cover -html coverage.out -o coverage.html
 
+run-acceptance-tests: generate-code
+	go test ./internal/... -v --tags=acceptance
+
 run-integration-tests: generate-code
-	docker-compose -f test/integration/docker-compose.yml up -d
+	docker-compose up -d --build --force-recreate
 	sleep 5
 	INTEGRATION_REDIS_CONNECTION_STRING=redis://localhost:6379 \
-		go test ./test/integration/redis_integration_test.go -v
-	docker-compose -f test/integration/docker-compose.yml down
+	INTEGRATION_MONGO_CONNECTION_STRING=mongodb://root:example@localhost:27017 \
+		go test ./internal/... --tags=integration -v
+	docker-compose down
 
-run-acceptance-tests: generate-code
-	docker-compose up -d
+
+
+run-e2e-tests: generate-code
+	docker-compose up -d --build --force-recreate
 	sleep 5
-	ACCEPTANCE_REDIS_CONNECTION_STRING=redis://localhost:6379 \
-		ACCEPTANCE_GRPC_SERVER=localhost:4000 \
-		go test ./test/acceptance/go_acceptance_test.go -v
-	
-	ACCEPTANCE_REDIS_CONNECTION_STRING=redis://localhost:6379 \
-		ACCEPTANCE_GRPC_SERVER=localhost:4000 \
-		go test ./test/acceptance/grpc_acceptance_test.go -v
-
+	E2E_GRPC_SERVER=localhost:4000 \
+		go test ./internal/... -v --tags=acceptance
 	docker-compose down
