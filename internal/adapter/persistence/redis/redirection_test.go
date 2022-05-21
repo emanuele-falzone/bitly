@@ -87,7 +87,7 @@ func TestIntegration_Redis_RedirectionRepository_Delete(t *testing.T) {
 			alreadyExists: true,
 			expectedErr:   false,
 		}, {
-			test:            "Redirection does not exists",
+			test:            "Redirection Does Not Exists",
 			alreadyExists:   false,
 			expectedErr:     true,
 			expectedErrCode: internal.ErrNotFound,
@@ -141,7 +141,7 @@ func TestIntegration_Redis_RedirectionRepository_FindByKey(t *testing.T) {
 			alreadyExists: true,
 			expectedErr:   false,
 		}, {
-			test:            "Redirection does not exists",
+			test:            "Redirection Does Not Exists",
 			alreadyExists:   false,
 			expectedErr:     true,
 			expectedErrCode: internal.ErrNotFound,
