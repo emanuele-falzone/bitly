@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEnviroment(t *testing.T) {
+func TestEnvironment(t *testing.T) {
 	// Build our needed testcase data struct
 	type testCase struct {
 		test            string

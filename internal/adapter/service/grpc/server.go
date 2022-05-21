@@ -71,7 +71,7 @@ func (s *Server) DeleteRedirection(ctx context.Context, in *pb.DeleteRedirection
 		return nil, mapErrorToGrpcError(err)
 	}
 
-	// Send DeleteRedirectionResponse to signal that the operation was succesfully executed
+	// Send DeleteRedirectionResponse to signal that the operation was successfully executed
 	return &pb.DeleteRedirectionResponse{}, nil
 }
 

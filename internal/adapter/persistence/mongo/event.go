@@ -50,7 +50,7 @@ func (r *MongoEventRepository) Create(ctx context.Context, a event.Event) error 
 	// Select collection
 	eventCollection := db.Collection(COLLECTION)
 
-	// Intert event into collection
+	// Insert event into collection
 	_, err := eventCollection.InsertOne(context.Background(), Event{
 		Key:      a.Redirection.Key,
 		Type:     string(a.Type),
@@ -63,7 +63,7 @@ func (r *MongoEventRepository) Create(ctx context.Context, a event.Event) error 
 		return &internal.Error{Code: internal.ErrInternal, Op: "MongoEventRepository: Create", Err: err}
 	}
 
-	// Return nil to signal that the operation was completed succesfully
+	// Return nil to signal that the operation was completed successfully
 	return nil
 }
 

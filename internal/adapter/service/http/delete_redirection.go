@@ -11,7 +11,7 @@ type DeleteRedirectionRequest struct {
 }
 
 // DeleteRedirectionHandler godoc
-// @Summary      Delete the redirection assiciated with a specific key
+// @Summary      Delete the redirection associated with a specific key
 // @Accept       json
 // @Produce      json
 // @Param        key  path      string  true  "Location"
@@ -28,7 +28,7 @@ func (s Server) DeleteRedirectionHandler(c *fiber.Ctx) error {
 		return err
 	}
 
-	// Create a new DeleteRedirectionCommand useing th ekey specified in the request
+	// Create a new DeleteRedirectionCommand using the key specified in the request
 	cmd := command.DeleteRedirectionCommand{Key: request.Key}
 
 	// Command execution
@@ -37,6 +37,6 @@ func (s Server) DeleteRedirectionHandler(c *fiber.Ctx) error {
 		return err
 	}
 
-	// Send status no content to signal that the operation was succesfully executed
+	// Send status no content to signal that the operation was successfully executed
 	return c.SendStatus(fiber.StatusNoContent)
 }

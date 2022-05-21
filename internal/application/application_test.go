@@ -86,7 +86,7 @@ func (d *GoDriver) CreateRedirection(ctx context.Context, location string) (stri
 	return value.Key, nil
 }
 func (d *GoDriver) DeleteRedirection(ctx context.Context, key string) error {
-	// Create a new DeleteRedirectionCommand useing th ekey specified in the request
+	// Create a new DeleteRedirectionCommand using the key specified in the request
 	cmd := command.DeleteRedirectionCommand{Key: key}
 
 	// Command execution

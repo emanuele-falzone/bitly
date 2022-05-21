@@ -39,7 +39,7 @@ func (h CreateRedirectionHandler) Handle(ctx context.Context, cmd CreateRedirect
 		return nil, &internal.Error{Op: "CreateRedirectionHandler: Handle", Err: err}
 	}
 
-	// Save the redirection insire the repository
+	// Save the redirection inside the repository
 	err = h.redirections.Create(ctx, val)
 
 	// If the save operation fails return error

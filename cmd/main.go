@@ -90,7 +90,7 @@ func main() {
 		redirectionRepository = memory.NewRedirectionRepository()
 	}
 
-	// Create event repositoty
+	// Create event repository
 	var eventRepository event.Repository
 
 	// Read MONGO_CONNECTION_STRING environment variable
@@ -129,7 +129,7 @@ func main() {
 	// Register event store into dispatcher
 	dispatcher.Register(eventStore)
 
-	// Create a new aaplication
+	// Create a new application
 	app := application.New(redirectionRepository, eventRepository, keyGenerator, dispatcher)
 
 	// Create a new grpc server
@@ -162,12 +162,12 @@ func main() {
 	fmt.Println()
 	log.Println("Shutting down GRPC server.")
 
-	// Gracesfully shutdown grpc server
+	// Gracefully shutdown grpc server
 	grpcServer.Stop()
 
-	// Gracesfully shutdown http server
+	// Gracefully shutdown http server
 	log.Println("Shutting down HTTP server.")
 
-	// Grascefully shutdown grps server
+	// Gracefully shutdown http server
 	httpServer.Stop()
 }

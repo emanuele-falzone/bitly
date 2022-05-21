@@ -82,18 +82,18 @@ func (d *HttpDriver) CreateRedirection(ctx context.Context, location string) (st
 	url := fmt.Sprintf("%s/api", d.endpoint)
 
 	// Define request data
-	reqeuestData := map[string]string{
+	requestData := map[string]string{
 		"location": location,
 	}
 
 	// Encode data
-	jsonReqeuestData, err := json.Marshal(reqeuestData)
+	jsonRequestData, err := json.Marshal(requestData)
 	if err != nil {
 		return "", err
 	}
 
 	// Create a new request
-	request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonReqeuestData))
+	request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonRequestData))
 	if err != nil {
 		return "", err
 	}

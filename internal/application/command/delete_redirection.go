@@ -30,7 +30,7 @@ func (h DeleteRedirectionHandler) Handle(ctx context.Context, cmd DeleteRedirect
 		return &internal.Error{Op: "DeleteRedirectionHandler: Handle", Err: err}
 	}
 
-	// Save the redirection insire the repository
+	// Save the redirection inside the repository
 	err = h.redirections.Delete(ctx, val)
 
 	// If the delete operation fails return error
@@ -41,6 +41,6 @@ func (h DeleteRedirectionHandler) Handle(ctx context.Context, cmd DeleteRedirect
 	// Dispatch deleted event
 	h.dispatcher.Dispatch(ctx, event.Deleted(val))
 
-	// Return nil to indicate that the command was succesfully executed
+	// Return nil to indicate that the command was successfully executed
 	return nil
 }
