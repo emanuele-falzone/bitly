@@ -36,7 +36,7 @@ func (s Server) RedirectionCountHandler(c *fiber.Ctx) error {
 	q := query.RedirectionCountQuery{Key: request.Key}
 
 	// Query execution
-	value, err := s.app.Queries.RedirectionCount.Handle(c.Context(), q)
+	value, err := s.application.Queries.RedirectionCount.Handle(c.Context(), q)
 	if err != nil {
 		return err
 	}

@@ -39,7 +39,7 @@ func (s Server) CreateRedirectionHandler(c *fiber.Ctx) error {
 	cmd := command.CreateRedirectionCommand{Location: request.Location}
 
 	// Command execution
-	value, err := s.app.Commands.CreateRedirection.Handle(c.Context(), cmd)
+	value, err := s.application.Commands.CreateRedirection.Handle(c.Context(), cmd)
 	if err != nil {
 		return err
 	}

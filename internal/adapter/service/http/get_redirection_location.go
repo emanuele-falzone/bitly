@@ -33,7 +33,7 @@ func (s Server) RedirectionLocationHandler(c *fiber.Ctx) error {
 	q := query.RedirectionLocationQuery{Key: request.Key}
 
 	// Query execution
-	value, err := s.app.Queries.RedirectionLocation.Handle(c.Context(), q)
+	value, err := s.application.Queries.RedirectionLocation.Handle(c.Context(), q)
 	if err != nil {
 		return err
 	}

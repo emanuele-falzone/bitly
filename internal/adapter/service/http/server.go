@@ -2,11 +2,9 @@ package http
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/application"
-	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -20,34 +18,37 @@ import (
 // @host      localhost:7070
 // @BasePath  /
 type Server struct {
-	app       *application.Application
-	validator validator.Validate
-	server    *fiber.App
+	application *application.Application
+	fiberApp    *fiber.App
 }
 
-func NewServer(app *application.Application) *Server {
-	return &Server{app: app, validator: *validator.New()}
+func NewServer(application *application.Application) *Server {
+	return &Server{application: application}
 }
 
 func (s *Server) Start(port int) error {
-	app := fiber.New(fiber.Config{ErrorHandler: ErrorHandler})
+	// Create new fiber app with custom error handler
+	s.fiberApp = fiber.New(fiber.Config{ErrorHandler: ErrorHandler})
 
 	// Middleware
-	app.Use(recover.New())
-	app.Use(cors.New())
+	s.fiberApp.Use(recover.New())
+	s.fiberApp.Use(cors.New())
 
-	app.Get("/swagger/*", swagger.HandlerDefault)
-	app.Post("/api", s.CreateRedirectionHandler)
-	app.Delete("/api/:key", s.DeleteRedirectionHandler)
-	app.Get("/api/:key/count", s.RedirectionCountHandler)
-	app.Get("/:key", s.RedirectionLocationHandler)
+	// Serve Swagger UI
+	s.fiberApp.Get("/swagger/*", swagger.HandlerDefault)
 
-	s.server = app
-	return app.Listen(fmt.Sprintf(":%d", port))
+	// Handle use cases
+	s.fiberApp.Post("/api", s.CreateRedirectionHandler)
+	s.fiberApp.Delete("/api/:key", s.DeleteRedirectionHandler)
+	s.fiberApp.Get("/api/:key/count", s.RedirectionCountHandler)
+	s.fiberApp.Get("/:key", s.RedirectionLocationHandler)
+
+	return s.fiberApp.Listen(fmt.Sprintf(":%d", port))
 }
 
 func (s *Server) Stop() {
-	s.server.Shutdown()
+	// Gracefully stop server
+	s.fiberApp.Shutdown()
 }
 
 type ErrorMessage struct {
@@ -55,10 +56,10 @@ type ErrorMessage struct {
 } //@name Error
 
 func ErrorHandler(c *fiber.Ctx, err error) error {
-	// Compute the human readable version of the error
-	msg := ErrorMessage{Message: internal.ErrorMessage(err)}
-	log.Printf("Error - %s", err)
-	// Map the internal error code to http status code
+	// Compute error message
+	msg := internal.ErrorMessage(err)
+
+	// Switch over error code
 	switch internal.ErrorCode(err) {
 	case internal.ErrConflict:
 		c.Status(fiber.StatusConflict).JSON(msg)
@@ -66,10 +67,9 @@ func ErrorHandler(c *fiber.Ctx, err error) error {
 		c.SendStatus(fiber.StatusNotFound)
 	case internal.ErrInvalid:
 		c.Status(fiber.StatusBadRequest).JSON(msg)
-	case internal.ErrInternal:
+	default:
+		// Fallback to internal error
 		c.SendStatus(fiber.StatusInternalServerError)
 	}
-
-	// Return from handler
 	return nil
 }
