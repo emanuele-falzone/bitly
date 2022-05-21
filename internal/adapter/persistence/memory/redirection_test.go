@@ -12,88 +12,163 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInMemoryRedirectionRepository_Create(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	repository := memory.NewRedirectionRepository()
+func TestMemory_RedirectionRepository_Create(t *testing.T) {
+	// Create a redirection that we are going to use in our test cases
 	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
 
-	// WHEN
-	err := repository.Create(ctx, value)
+	// Build our needed testcase data struct
+	type testCase struct {
+		test            string
+		alreadyExists   bool   // True if the redirection should already exist in the repository
+		expectedErr     bool   // True if expecting error
+		expectedErrCode string // Expected error code
+	}
 
-	// THEN
-	assert.Equal(t, nil, err)
+	// Create new test cases
+	testCases := []testCase{
+		{
+			test:          "New Redirection",
+			alreadyExists: false,
+			expectedErr:   false,
+		}, {
+			test:            "Redirection Already Exists",
+			alreadyExists:   true,
+			expectedErr:     true,
+			expectedErrCode: internal.ErrConflict,
+		},
+	}
+
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run(tc.test, func(t *testing.T) {
+			// Create a new context
+			ctx := context.Background()
+
+			// Create a new (clean) memory repository
+			repository := memory.NewRedirectionRepository()
+
+			// Create the redirection if it should already exist in the repository
+			if tc.alreadyExists {
+				repository.Create(ctx, value)
+			}
+
+			// Insert the redirection into the repository
+			err := repository.Create(ctx, value)
+
+			// Check expected error and expected error code
+			if tc.expectedErr {
+				assert.Equal(t, tc.expectedErrCode, internal.ErrorCode(err))
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
 }
 
-func TestInMemoryRedirectionRepository_CreateFailed(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	repository := memory.NewRedirectionRepository()
+func TestMemory_RedirectionRepository_Delete(t *testing.T) {
+	// Create a redirection that we are going to use in our test cases
 	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
-	repository.Create(ctx, value)
 
-	// WHEN
-	err := repository.Create(ctx, value)
+	// Build our needed testcase data struct
+	type testCase struct {
+		test            string
+		alreadyExists   bool   // True if the redirection should already exist in the repository
+		expectedErr     bool   // True if expecting error
+		expectedErrCode string // Expected error code
+	}
 
-	// THEN
-	assert.Equal(t, internal.ErrConflict, internal.ErrorCode(err))
+	// Create new test cases
+	testCases := []testCase{
+		{
+			test:          "Existing Redirection",
+			alreadyExists: true,
+			expectedErr:   false,
+		}, {
+			test:            "Redirection Does Not Exists",
+			alreadyExists:   false,
+			expectedErr:     true,
+			expectedErrCode: internal.ErrNotFound,
+		},
+	}
+
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run(tc.test, func(t *testing.T) {
+			// Create a new context
+			ctx := context.Background()
+
+			// Create a new (clean) memory repository
+			repository := memory.NewRedirectionRepository()
+
+			// Create the redirection if it should already exist in the repository
+			if tc.alreadyExists {
+				repository.Create(ctx, value)
+			}
+
+			// Insert the redirection into the repository
+			err := repository.Delete(ctx, value)
+
+			// Check expected error and expected error code
+			if tc.expectedErr {
+				assert.Equal(t, tc.expectedErrCode, internal.ErrorCode(err))
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
 }
 
-func TestInMemoryRedirectionRepository_Delete(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	repository := memory.NewRedirectionRepository()
-	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
-	repository.Create(ctx, value)
-
-	// WHEN
-	err := repository.Delete(ctx, value)
-
-	// THEN
-	assert.Equal(t, nil, err)
-	value, err = repository.FindByKey(ctx, value.Key)
-	assert.Equal(t, internal.ErrNotFound, internal.ErrorCode(err))
-}
-
-func TestInMemoryRedirectionRepository_DeleteFailed(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	repository := memory.NewRedirectionRepository()
+func TestMemory_RedirectionRepository_FindByKey(t *testing.T) {
+	// Create a redirection that we are going to use in our test cases
 	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
 
-	// WHEN
-	err := repository.Delete(ctx, value)
+	// Build our needed testcase data struct
+	type testCase struct {
+		test            string
+		alreadyExists   bool   // True if the redirection should already exist in the repository
+		expectedErr     bool   // True if expecting error
+		expectedErrCode string // Expected error code
+	}
 
-	// THEN
-	assert.Equal(t, internal.ErrNotFound, internal.ErrorCode(err))
+	// Create new test cases
+	testCases := []testCase{
+		{
+			test:          "Existing Redirection",
+			alreadyExists: true,
+			expectedErr:   false,
+		}, {
+			test:            "Redirection Does Not Exists",
+			alreadyExists:   false,
+			expectedErr:     true,
+			expectedErrCode: internal.ErrNotFound,
+		},
+	}
 
-}
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run(tc.test, func(t *testing.T) {
+			// Create a new context
+			ctx := context.Background()
 
-func TestInMemoryRedirectionRepository_FindByKey(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	repository := memory.NewRedirectionRepository()
-	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
-	repository.Create(ctx, value)
+			// Create a new (clean) memory repository
+			repository := memory.NewRedirectionRepository()
 
-	// WHEN
-	valueFound, err := repository.FindByKey(ctx, value.Key)
+			// Create the redirection if it should already exist in the repository
+			if tc.alreadyExists {
+				repository.Create(ctx, value)
+			}
 
-	// THEN
-	assert.Equal(t, nil, err)
-	assert.Equal(t, value.Key, valueFound.Key)
-	assert.Equal(t, value.Location, valueFound.Location)
-}
+			// Retrieve redirection from repository
+			result, err := repository.FindByKey(ctx, value.Key)
 
-func TestInMemoryRedirectionRepository_FindByKeyFailed(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	repository := memory.NewRedirectionRepository()
-	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
-
-	// WHEN
-	_, err := repository.FindByKey(ctx, value.Key)
-
-	// THEN
-	assert.Equal(t, internal.ErrNotFound, internal.ErrorCode(err))
+			// Check result and expected error
+			if tc.expectedErr {
+				assert.Equal(t, tc.expectedErrCode, internal.ErrorCode(err))
+			} else {
+				assert.Nil(t, err)
+				assert.Equal(t, value.Key, result.Key)
+				assert.Equal(t, value.Location, result.Location)
+			}
+		})
+	}
 }

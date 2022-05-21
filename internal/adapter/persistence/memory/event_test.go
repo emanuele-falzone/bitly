@@ -13,60 +13,102 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInMemoryEventRepository_Create(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	repository := memory.NewEventRepository()
-	aRedirection := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
-	event := event.Created(aRedirection)
+func TestMemory_EventRepository_Create(t *testing.T) {
+	// Create a redirection that we are going to use in our test cases
+	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
 
-	// WHEN
-	err := repository.Create(ctx, event)
+	// Build our needed testcase data struct
+	type testCase struct {
+		test  string
+		event event.Event // Event to be inserted into the repository
+	}
 
-	// THEN
-	assert.Equal(t, nil, err)
+	// Create new test cases
+	testCases := []testCase{
+		{
+			test:  "Created Event",
+			event: event.Created(value),
+		}, {
+			test:  "Read Event",
+			event: event.Read(value),
+		}, {
+			test:  "Deleted Event",
+			event: event.Deleted(value),
+		},
+	}
+
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run(tc.test, func(t *testing.T) {
+			// Create a new context
+			ctx := context.Background()
+
+			// Create a new (clean) memory repository
+			repository := memory.NewEventRepository()
+
+			// Insert the event into the repository
+			err := repository.Create(ctx, tc.event)
+
+			// Check if the event has been inserted without error
+			assert.Nil(t, err)
+		})
+	}
 }
 
-func TestInMemoryEventRepository_FindByRedirection(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	repository := memory.NewEventRepository()
-	aRedirection := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
-	CreateEvent := event.Created(aRedirection)
-	readEvent1 := event.Read(aRedirection)
-	readEvent2 := event.Read(aRedirection)
-	readEvent3 := event.Read(aRedirection)
-	deleteEvent := event.Deleted(aRedirection)
+func TestMemory_EventRepository_FindByRedirection(t *testing.T) {
+	// Create a redirection that we are going to use in our test cases
+	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
 
-	err := repository.Create(ctx, CreateEvent)
-	assert.Equal(t, nil, err)
-	err = repository.Create(ctx, readEvent1)
-	assert.Equal(t, nil, err)
-	err = repository.Create(ctx, readEvent2)
-	assert.Equal(t, nil, err)
-	err = repository.Create(ctx, readEvent3)
-	assert.Equal(t, nil, err)
-	err = repository.Create(ctx, deleteEvent)
-	assert.Equal(t, nil, err)
+	// Build our needed testcase data struct
+	type testCase struct {
+		test            string
+		count           int    // Number of times the event has to be inserted into the repository
+		expectedErr     bool   // True if expecting error
+		expectedErrCode string // Expected error code
+	}
 
-	// WHEN
-	events, err := repository.FindByRedirection(ctx, aRedirection)
+	// Create new test cases
+	testCases := []testCase{
+		{
+			test:            "Zero",
+			count:           0,
+			expectedErr:     true,
+			expectedErrCode: internal.ErrNotFound,
+		}, {
+			test:        "Ten",
+			count:       10,
+			expectedErr: false,
+		},
+	}
 
-	// THEN
-	assert.Equal(t, nil, err)
-	assert.Equal(t, 5, len(events))
-}
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run(tc.test, func(t *testing.T) {
+			// Create a new context
+			ctx := context.Background()
 
-func TestInMemoryEventRepository_FindByRedirectionFailure(t *testing.T) {
-	// GIVEN
-	ctx := context.Background()
-	repository := memory.NewEventRepository()
-	aRedirection := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
+			// Create a new (clean) memory repository
+			repository := memory.NewEventRepository()
 
-	// WHEN
-	events, err := repository.FindByRedirection(ctx, aRedirection)
+			// Insert the event into the repository tc.count times
+			for i := 0; i < tc.count; i++ {
+				// Insert the event into the repository
+				err := repository.Create(ctx, event.Read(value))
+				assert.Nil(t, err)
+			}
 
-	// THEN
-	assert.Equal(t, 0, len(events))
-	assert.Equal(t, internal.ErrNotFound, internal.ErrorCode(err))
+			// Find the events in the repository
+			events, err := repository.FindByRedirection(ctx, value)
+
+			// Check events length
+			assert.Len(t, events, tc.count)
+
+			// Check expected error and expected error code
+			if tc.expectedErr {
+				assert.Equal(t, tc.expectedErrCode, internal.ErrorCode(err))
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
 }
