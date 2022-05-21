@@ -18,14 +18,12 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-/*
-This serves as an end to end test for testing user requirements
-*/
-
-func TestAcceptance_GrpcDriver_RedisRepository(t *testing.T) {
-
+// This serves as an end to end test for testing user requirements
+func TestEndToEnd_GrpcServer(t *testing.T) {
+	// Create a new context
 	ctx := context.Background()
 
+	// Define godog options
 	var opts = godog.Options{
 		Format:   "pretty",
 		Output:   colors.Colored(os.Stdout),
@@ -33,24 +31,29 @@ func TestAcceptance_GrpcDriver_RedisRepository(t *testing.T) {
 		TestingT: t,
 	}
 
-	serverAddress, err := internal.GetEnv("E2E_GRPC_SERVER")
+	// Read E2E_GRPC_SERVER environment variable
+	serverAddress, err := internal.GetEnv("E2E_GRPC_SERVER") // ex: localhost:6060
 	if err != nil {
 		panic(err)
 	}
 
+	// Create new grpc driver
 	driver_, err := NewGrpcDriver(serverAddress)
 	if err != nil {
 		panic(err)
 	}
 
+	// Run godog test suite
 	status := godog.TestSuite{
-		Name: "Acceptance tests using go driver and redis repository",
+		Name: "End to end tests using the grpc driver",
 		ScenarioInitializer: scenario.Initialize(func() *client.Client {
+			// Create a new client for each scenario (this allows to keep the client simple)
 			return client.NewClient(driver_, ctx)
 		}),
 		Options: &opts,
 	}.Run()
 
+	// Check exit status
 	if status != 0 {
 		os.Exit(status)
 	}
@@ -62,11 +65,13 @@ type GrpcDriver struct {
 }
 
 func NewGrpcDriver(serverAddress string) (driver.Driver, error) {
+	// Connect to grpc server
 	conn, err := grpc.Dial(serverAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, &internal.Error{Code: internal.ErrInternal, Err: err}
 	}
 
+	// Create new grpc client
 	client := pb.NewBitlyServiceClient(conn)
 
 	return &GrpcDriver{client: client}, nil

@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
@@ -21,14 +20,12 @@ import (
 	"github.com/emanuelefalzone/bitly/test/acceptance/scenario"
 )
 
-/*
-This serves as an end to end test for testing user requirements
-*/
-
-func TestAcceptance_HttpDriver(t *testing.T) {
-
+// This serves as an end to end test for testing user requirements
+func TestEndToEnd_HttpServer(t *testing.T) {
+	// Create a new context
 	ctx := context.Background()
 
+	// Define godog options
 	var opts = godog.Options{
 		Format:   "pretty",
 		Output:   colors.Colored(os.Stdout),
@@ -36,31 +33,35 @@ func TestAcceptance_HttpDriver(t *testing.T) {
 		TestingT: t,
 	}
 
+	// Read E2E_HTTP_SERVER environment variable
 	serverAddress, err := internal.GetEnv("E2E_HTTP_SERVER")
 	if err != nil {
 		panic(err)
 	}
 
+	// Create new http driver
 	driver_ := NewHttpDriver(serverAddress)
 	if err != nil {
 		panic(err)
 	}
 
+	// Run godog test suite
 	status := godog.TestSuite{
-		Name: "Acceptance tests using go driver and redis repository",
+		Name: "End to end tests using the http driver",
 		ScenarioInitializer: scenario.Initialize(func() *client.Client {
+			// Create a new client for each scenario (this allows to keep the client simple)
 			return client.NewClient(driver_, ctx)
 		}),
 		Options: &opts,
 	}.Run()
 
+	// Check exit status
 	if status != 0 {
 		os.Exit(status)
 	}
 }
 
-const Timeout = time.Duration(1) * time.Second
-
+// The HttpDriver interacts with the Http server
 type HttpDriver struct {
 	client   *http.Client
 	endpoint string
@@ -73,6 +74,7 @@ func NewHttpDriver(endpoint string) driver.Driver {
 	return &HttpDriver{client: client, endpoint: endpoint}
 }
 
+// Prevent the client to follow redirections
 func CheckRedirect(req *http.Request, via []*http.Request) error {
 	return http.ErrUseLastResponse
 }
