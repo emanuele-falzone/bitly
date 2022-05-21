@@ -23,7 +23,7 @@ func NewRedirectionRepository(connectionString string) (redirection.Repository, 
 	client := redis.NewClient(opt)
 
 	// Return a new RedisRedirectionRepository
-	return RedisRedirectionRepository{client: client}, nil
+	return &RedisRedirectionRepository{client: client}, nil
 }
 
 func (r RedisRedirectionRepository) Create(ctx context.Context, a redirection.Redirection) error {
