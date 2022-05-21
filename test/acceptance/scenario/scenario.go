@@ -23,7 +23,7 @@ func Initialize(fn func() *client.Client) func(*godog.ScenarioContext) {
 		// THEN
 		ctx.Step(`^the system redirects me to (.*)$`, client.ConfirmLocationToBe)
 		ctx.Step(`^the system returns a short link$`, client.ConfirmHasKey)
-		ctx.Step(`^the system confirms that the operation was succesfully executed$`, client.ConfirmNoError)
+		ctx.Step(`^the system confirms that the operation was successfully executed$`, client.ConfirmNoError)
 		ctx.Step(`^the system signals that the short link does not exist$`, client.ConfirmError)
 		ctx.Step(`^the system says the link has been visited (\d+) times$`, client.ConfirmCountToBe)
 		ctx.Step(`^the system signals that the link is not valid$`, client.ConfirmError)
