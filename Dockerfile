@@ -37,19 +37,19 @@ RUN make build-for-development
 CMD ["./main"]
 
 # Define production target
-FROM build AS production
+FROM build AS production_build
 
 # Build project
 RUN make build-for-production
 
 # Start from fresh image
-FROM alpine:3.15
+FROM alpine:3.15 AS production
 
 # Set working directory
 WORKDIR /app
 
 # Copy binary from build stage
-COPY --from=production /app/main /app/main
+COPY --from=production_build /app/main /app/main
 
 # Start
 CMD ["./main"]
