@@ -23,8 +23,9 @@ func TestIntegration_Mongo_EventRepository_Create(t *testing.T) {
 	// Build our needed testcase data struct
 	type testCase struct {
 		test  string
-		event event.Event
+		event event.Event // Event to be inserted into the repository
 	}
+
 	// Create new test cases
 	testCases := []testCase{
 		{
@@ -39,13 +40,20 @@ func TestIntegration_Mongo_EventRepository_Create(t *testing.T) {
 		},
 	}
 
+	// Run test cases
 	for _, tc := range testCases {
 		t.Run(tc.test, func(t *testing.T) {
+			// Create a new context
 			ctx := context.Background()
-			repository, _ := newMongoRepository(ctx)
 
-			err := repository.Create(ctx, tc.event)
+			// Create a new (clean) mongo repository
+			repository, err := newMongoRepository(ctx)
+			assert.Nil(t, err)
 
+			// Insert the event into the repository
+			err = repository.Create(ctx, tc.event)
+
+			// Check if the event has been inserted without error
 			assert.Nil(t, err)
 		})
 	}
@@ -57,16 +65,19 @@ func TestIntegration_Mongo_EventRepository_FindByRedirection(t *testing.T) {
 
 	// Build our needed testcase data struct
 	type testCase struct {
-		test        string
-		count       int
-		expectedErr bool
+		test            string
+		count           int    // Number of times the event has to be inserted into the repository
+		expectedErr     bool   // Expecting error
+		expectedErrCode string // Expected error code (if expectedErr is true)
 	}
+
 	// Create new test cases
 	testCases := []testCase{
 		{
-			test:        "Zero",
-			count:       0,
-			expectedErr: true,
+			test:            "Zero",
+			count:           0,
+			expectedErr:     true,
+			expectedErrCode: internal.ErrNotFound,
 		}, {
 			test:        "Ten",
 			count:       10,
@@ -74,20 +85,32 @@ func TestIntegration_Mongo_EventRepository_FindByRedirection(t *testing.T) {
 		},
 	}
 
+	// Run test cases
 	for _, tc := range testCases {
 		t.Run(tc.test, func(t *testing.T) {
+			// Create a new context
 			ctx := context.Background()
-			repository, _ := newMongoRepository(ctx)
 
+			// Create a new (clean) mongo repository
+			repository, err := newMongoRepository(ctx)
+			assert.Nil(t, err)
+
+			// Insert the event into the repository tc.count times
 			for i := 0; i < tc.count; i++ {
+				// Insert the event into the repository
 				err := repository.Create(ctx, event.Read(value))
 				assert.Nil(t, err)
 			}
 
+			// Find the events in the repository
 			events, err := repository.FindByRedirection(ctx, value)
+
+			// Check events length
 			assert.Len(t, events, tc.count)
+
+			// Check expected error and expected error code
 			if tc.expectedErr {
-				assert.Equal(t, internal.ErrNotFound, internal.ErrorCode(err))
+				assert.Equal(t, tc.expectedErrCode, internal.ErrorCode(err))
 			} else {
 				assert.Nil(t, err)
 			}
