@@ -21,10 +21,11 @@ func TestIntegration_Redis_RedirectionRepository_Create(t *testing.T) {
 	// Build our needed testcase data struct
 	type testCase struct {
 		test            string
-		alreadyExists   bool
-		expectedErr     bool
-		expectedErrCode string
+		alreadyExists   bool   // True if the redirection should already exist in the repository
+		expectedErr     bool   // True if expecting error
+		expectedErrCode string // Expected error code
 	}
+
 	// Create new test cases
 	testCases := []testCase{
 		{
@@ -32,25 +33,32 @@ func TestIntegration_Redis_RedirectionRepository_Create(t *testing.T) {
 			alreadyExists: false,
 			expectedErr:   false,
 		}, {
-			test:            "Redirection already exists",
+			test:            "Redirection Already Exists",
 			alreadyExists:   true,
 			expectedErr:     true,
 			expectedErrCode: internal.ErrConflict,
 		},
 	}
 
+	// Run test cases
 	for _, tc := range testCases {
 		t.Run(tc.test, func(t *testing.T) {
+			// Create a new context
 			ctx := context.Background()
+
+			// Create a new (clean) redis repository
 			repository, err := newRedisRepository(ctx)
 			assert.Nil(t, err)
 
+			// Create the redirection if it should already exist in the repository
 			if tc.alreadyExists {
 				repository.Create(ctx, value)
 			}
 
+			// Insert the redirection into the repository
 			err = repository.Create(ctx, value)
 
+			// Check expected error and expected error code
 			if tc.expectedErr {
 				assert.Equal(t, tc.expectedErrCode, internal.ErrorCode(err))
 			} else {
@@ -67,10 +75,11 @@ func TestIntegration_Redis_RedirectionRepository_Delete(t *testing.T) {
 	// Build our needed testcase data struct
 	type testCase struct {
 		test            string
-		alreadyExists   bool
-		expectedErr     bool
-		expectedErrCode string
+		alreadyExists   bool   // True if the redirection should already exist in the repository
+		expectedErr     bool   // True if expecting error
+		expectedErrCode string // Expected error code
 	}
+
 	// Create new test cases
 	testCases := []testCase{
 		{
@@ -85,18 +94,25 @@ func TestIntegration_Redis_RedirectionRepository_Delete(t *testing.T) {
 		},
 	}
 
+	// Run test cases
 	for _, tc := range testCases {
 		t.Run(tc.test, func(t *testing.T) {
+			// Create a new context
 			ctx := context.Background()
+
+			// Create a new (clean) redis repository
 			repository, err := newRedisRepository(ctx)
 			assert.Nil(t, err)
 
+			// Create the redirection if it should already exist in the repository
 			if tc.alreadyExists {
 				repository.Create(ctx, value)
 			}
 
+			// Insert the redirection into the repository
 			err = repository.Delete(ctx, value)
 
+			// Check expected error and expected error code
 			if tc.expectedErr {
 				assert.Equal(t, tc.expectedErrCode, internal.ErrorCode(err))
 			} else {
@@ -113,10 +129,11 @@ func TestIntegration_Redis_RedirectionRepository_FindByKey(t *testing.T) {
 	// Build our needed testcase data struct
 	type testCase struct {
 		test            string
-		alreadyExists   bool
-		expectedErr     bool
-		expectedErrCode string
+		alreadyExists   bool   // True if the redirection should already exist in the repository
+		expectedErr     bool   // True if expecting error
+		expectedErrCode string // Expected error code
 	}
+
 	// Create new test cases
 	testCases := []testCase{
 		{
@@ -131,18 +148,25 @@ func TestIntegration_Redis_RedirectionRepository_FindByKey(t *testing.T) {
 		},
 	}
 
+	// Run test cases
 	for _, tc := range testCases {
 		t.Run(tc.test, func(t *testing.T) {
+			// Create a new context
 			ctx := context.Background()
+
+			// Create a new (clean) redis repository
 			repository, err := newRedisRepository(ctx)
 			assert.Nil(t, err)
 
+			// Create the redirection if it should already exist in the repository
 			if tc.alreadyExists {
 				repository.Create(ctx, value)
 			}
 
+			// Retrieve redirection from repository
 			result, err := repository.FindByKey(ctx, value.Key)
 
+			// Check result and expected error
 			if tc.expectedErr {
 				assert.Equal(t, tc.expectedErrCode, internal.ErrorCode(err))
 			} else {
