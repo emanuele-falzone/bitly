@@ -17,7 +17,6 @@ RUN go mod download
 COPY cmd cmd
 COPY internal internal
 COPY tools tools
-COPY tools tools
 COPY Makefile ./
 COPY LICENSE ./
 COPY README.md ./
