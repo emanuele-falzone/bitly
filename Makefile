@@ -55,29 +55,62 @@ generate-docs:
 	# Generate documentation for grpc service
 	swag init -d internal/adapter/service/http --generalInfo server.go
 
-build: generate-code
+build-for-production:
+	# Build removing debug info
 	go build -ldflags "-s -w" -v ./cmd/main.go
 
-run-unit-tests: generate-code
-	CVPKG=$(go list ./internal/... | grep -v pb | tr '\n' ',')
-	go test ./internal/... -count=1 -coverpkg=$(CVPKG) -coverprofile unit-coverage.out -v --tags=unit
+build-for-development:
+	# Build using -race to check for race conditions while running
+	go build -race -v ./cmd/main.go
+
+CVPKG=$(go list ./internal/... | grep -v pb | tr '\n' ',')
+
+run-unit-tests:
+	# Run unit tests with coverage
+	go test ./internal/... -v \
+		-count=1  \
+		-coverpkg=$(CVPKG) \
+		-coverprofile unit-coverage.out \
+		--tags=unit
+
+	# Generate human readable coverage result
 	go tool cover -html unit-coverage.out -o unit-coverage.html
 
-run-acceptance-tests: generate-code
-	go test ./internal/... -count=1 -coverpkg=./internal/... -coverprofile acceptance-coverage.out -v --tags=acceptance
+run-acceptance-tests:
+	# Run acceptance tests with coverage
+	go test ./internal/... -v \
+		-count=1 \
+		-coverpkg=$(CVPKG) \
+		-coverprofile acceptance-coverage.out \
+		--tags=acceptance
+
+	# Generate human readable coverage result
 	go tool cover -html acceptance-coverage.out -o acceptance-coverage.html
 
-run-integration-tests: generate-code
-	docker-compose up -d --build --force-recreate
-	sleep 5
-	INTEGRATION_REDIS_CONNECTION_STRING=redis://localhost:6379 \
-	INTEGRATION_MONGO_CONNECTION_STRING=mongodb://root:example@localhost:27017 \
-		go test ./internal/... -count=1 -coverpkg=./internal/... -coverprofile integration-coverage.out -v --tags=integration
-	go tool cover -html integration-coverage.out -o integration-coverage.html
+setup-docker-environment:
+	docker-compose up --detach --build
+
+teardown-docker-environment:
 	docker-compose down
 
-run-e2e-tests: generate-code
-	docker-compose up -d --build --force-recreate
-	sleep 5
-	E2E_GRPC_SERVER=localhost:6060 E2E_HTTP_SERVER=http://localhost:7070 go test ./internal/... -count=1 -v --tags=e2e
-	docker-compose down
+run-integration-tests:
+	# Run integration tests with coverage
+	INTEGRATION_REDIS_CONNECTION_STRING=redis://localhost:6379 \
+	INTEGRATION_MONGO_CONNECTION_STRING=mongodb://root:example@localhost:27017 \
+		go test ./internal/... -v \
+		-count=1 \
+		-coverpkg=$(CVPKG) \
+		-coverprofile integration-coverage.out \
+		--tags=integration
+
+	# Generate human readable coverage result
+	go tool cover -html integration-coverage.out -o integration-coverage.html
+
+run-e2e-tests:
+	# Run e2e tests
+	E2E_GRPC_SERVER=localhost:6060 \
+	E2E_HTTP_SERVER=http://localhost:7070 \
+	go test ./internal/... -v \
+		-count=1 \
+		--tags=e2e
+

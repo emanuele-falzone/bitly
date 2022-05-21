@@ -29,28 +29,36 @@ jobs:
     
     - name: Generate docs
       run: make generate-docs
-      
-    - name: Build
-      run: make build
 
     - name: Unit Tests
       run: make run-unit-tests
     
     - name: Acceptance Tests
       run: make run-acceptance-tests
+
+    - name: Setup docker environment
+      run: make setup-docker-environment
     
     - name: Integration Tests
       run: make run-integration-tests
 
     - name: E2E Tests
       run: make run-e2e-tests
+    
+    - name: Teardown docker environment
+      run: make teardown-docker-environment
 
     - uses: actions/upload-artifact@v3
       with:
         name: coverage
-        path: coverage.html
+        path: |
+          unit-coverage.html
+          acceptance-coverage.html
+          integration-coverage.html
 
     - uses: actions/upload-artifact@v3
       with:
         name: documentation
         path: docs/index.html
+        path: docs/swagger.yaml
+        path: docs/swagger.json
