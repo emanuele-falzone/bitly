@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/memory"
 	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/mongo"
 	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
@@ -17,60 +16,7 @@ import (
 	_mongo_options "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func TestInMemoryEventRepository(t *testing.T) {
-	RunTestEventRepository(t, func() (event.Repository, error) {
-		return memory.NewEventRepository(), nil
-	})
-}
-
-func TestMongoEventRepository(t *testing.T) {
-	RunTestEventRepository(t, func() (event.Repository, error) {
-		// Create new context
-		ctx := context.Background()
-
-		// Read Mongo connection string from env
-		connectionString, err := internal.GetEnv("INTEGRATION_MONGO_CONNECTION_STRING")
-		if err != nil {
-			panic(err)
-		}
-
-		// Parse connection string and check for errors
-		err = clearMongo(ctx, connectionString, mongo.DB)
-		if err != nil {
-			return nil, err
-		}
-
-		return mongo.NewEventRepository(connectionString)
-	})
-}
-
-func RunTestEventRepository(t *testing.T, newRepository func() (event.Repository, error)) {
-	// Build our needed testcase data struct
-	type testCase struct {
-		test string
-		fn   func(*testing.T, func() (event.Repository, error))
-	}
-	// Create new test cases
-	testCases := []testCase{
-		{
-			test: "TestCreate",
-			fn:   _TestEventCreate,
-		}, {
-			test: "TestFindByRedirection",
-			fn:   _TestEventFindByRedirection,
-		},
-	}
-
-	for _, tc := range testCases {
-		// Run Tests
-		t.Run(tc.test, func(t *testing.T) {
-			tc.fn(t, newRepository)
-		})
-	}
-
-}
-
-func _TestEventCreate(t *testing.T, newRepository func() (event.Repository, error)) {
+func TestIntegration_Mongo_EventRepository_Create(t *testing.T) {
 	// Create a redirection that we are going to use in our test cases
 	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
 
@@ -96,7 +42,7 @@ func _TestEventCreate(t *testing.T, newRepository func() (event.Repository, erro
 	for _, tc := range testCases {
 		t.Run(tc.test, func(t *testing.T) {
 			ctx := context.Background()
-			repository, _ := newRepository()
+			repository, _ := newMongoRepository(ctx)
 
 			err := repository.Create(ctx, tc.event)
 
@@ -105,7 +51,7 @@ func _TestEventCreate(t *testing.T, newRepository func() (event.Repository, erro
 	}
 }
 
-func _TestEventFindByRedirection(t *testing.T, newRepository func() (event.Repository, error)) {
+func TestIntegration_Mongo_EventRepository_FindByRedirection(t *testing.T) {
 	// Create a redirection that we are going to use in our test cases
 	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
 
@@ -131,7 +77,7 @@ func _TestEventFindByRedirection(t *testing.T, newRepository func() (event.Repos
 	for _, tc := range testCases {
 		t.Run(tc.test, func(t *testing.T) {
 			ctx := context.Background()
-			repository, _ := newRepository()
+			repository, _ := newMongoRepository(ctx)
 
 			for i := 0; i < tc.count; i++ {
 				err := repository.Create(ctx, event.Read(value))
@@ -149,22 +95,33 @@ func _TestEventFindByRedirection(t *testing.T, newRepository func() (event.Repos
 	}
 }
 
-func clearMongo(ctx context.Context, connectionString, database string) error {
+func newMongoRepository(ctx context.Context) (event.Repository, error) {
+	// Read Mongo connection string from env
+	connectionString, err := internal.GetEnv("INTEGRATION_MONGO_CONNECTION_STRING")
+	if err != nil {
+		return nil, err
+	}
+
 	// Create new mongo client with the given connection string
 	client, err := _mongo.NewClient(_mongo_options.Client().ApplyURI(connectionString))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Connect with the mongo instance
 	err = client.Connect(context.Background())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Select database
-	db := client.Database(database)
+	db := client.Database(mongo.DB)
 
 	// Drop db
-	return db.Drop(context.Background())
+	err = db.Drop(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return mongo.NewEventRepository(connectionString)
 }

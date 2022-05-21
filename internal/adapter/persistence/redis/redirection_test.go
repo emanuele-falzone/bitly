@@ -4,11 +4,9 @@ package redis_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/memory"
 	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/redis"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 	"github.com/stretchr/testify/assert"
@@ -16,63 +14,7 @@ import (
 	_redis "github.com/go-redis/redis/v8"
 )
 
-func TestInMemoryRedirectionRepository(t *testing.T) {
-	RunTestRedirectionRepository(t, func() (redirection.Repository, error) {
-		return memory.NewRedirectionRepository(), nil
-	})
-}
-
-func TestRedisRedirectionRepository(t *testing.T) {
-	RunTestRedirectionRepository(t, func() (redirection.Repository, error) {
-		// Create new context
-		ctx := context.Background()
-
-		// Read redis connection string from env
-		connectionString, err := internal.GetEnv("INTEGRATION_REDIS_CONNECTION_STRING")
-		if err != nil {
-			panic(err)
-		}
-
-		// Parse connection string and check for errors
-		err = clearRedis(ctx, connectionString)
-		if err != nil {
-			return nil, err
-		}
-
-		return redis.NewRedirectionRepository(connectionString)
-	})
-}
-
-func RunTestRedirectionRepository(t *testing.T, newRepository func() (redirection.Repository, error)) {
-	// Build our needed testcase data struct
-	type testCase struct {
-		test string
-		fn   func(*testing.T, func() (redirection.Repository, error))
-	}
-	// Create new test cases
-	testCases := []testCase{
-		{
-			test: "TestCreate",
-			fn:   _TestRedirectionCreate,
-		}, {
-			test: "TestDelete",
-			fn:   _TestRedirectionDelete,
-		}, {
-			test: "TestFindByKey",
-			fn:   _TestRedirectionFindByKey,
-		},
-	}
-
-	for _, tc := range testCases {
-		// Run Tests
-		t.Run(tc.test, func(t *testing.T) {
-			tc.fn(t, newRepository)
-		})
-	}
-
-}
-
-func _TestRedirectionCreate(t *testing.T, newRepository func() (redirection.Repository, error)) {
+func TestIntegration_Redis_RedirectionRepository_Create(t *testing.T) {
 	// Create a redirection that we are going to use in our test cases
 	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
 
@@ -100,13 +42,14 @@ func _TestRedirectionCreate(t *testing.T, newRepository func() (redirection.Repo
 	for _, tc := range testCases {
 		t.Run(tc.test, func(t *testing.T) {
 			ctx := context.Background()
-			repository, _ := newRepository()
+			repository, err := newRedisRepository(ctx)
+			assert.Nil(t, err)
 
 			if tc.alreadyExists {
 				repository.Create(ctx, value)
 			}
 
-			err := repository.Create(ctx, value)
+			err = repository.Create(ctx, value)
 
 			if tc.expectedErr {
 				assert.Equal(t, tc.expectedErrCode, internal.ErrorCode(err))
@@ -117,7 +60,7 @@ func _TestRedirectionCreate(t *testing.T, newRepository func() (redirection.Repo
 	}
 }
 
-func _TestRedirectionDelete(t *testing.T, newRepository func() (redirection.Repository, error)) {
+func TestIntegration_Redis_RedirectionRepository_Delete(t *testing.T) {
 	// Create a redirection that we are going to use in our test cases
 	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
 
@@ -145,13 +88,14 @@ func _TestRedirectionDelete(t *testing.T, newRepository func() (redirection.Repo
 	for _, tc := range testCases {
 		t.Run(tc.test, func(t *testing.T) {
 			ctx := context.Background()
-			repository, _ := newRepository()
+			repository, err := newRedisRepository(ctx)
+			assert.Nil(t, err)
 
 			if tc.alreadyExists {
 				repository.Create(ctx, value)
 			}
 
-			err := repository.Delete(ctx, value)
+			err = repository.Delete(ctx, value)
 
 			if tc.expectedErr {
 				assert.Equal(t, tc.expectedErrCode, internal.ErrorCode(err))
@@ -162,7 +106,7 @@ func _TestRedirectionDelete(t *testing.T, newRepository func() (redirection.Repo
 	}
 }
 
-func _TestRedirectionFindByKey(t *testing.T, newRepository func() (redirection.Repository, error)) {
+func TestIntegration_Redis_RedirectionRepository_FindByKey(t *testing.T) {
 	// Create a redirection that we are going to use in our test cases
 	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
 
@@ -190,7 +134,8 @@ func _TestRedirectionFindByKey(t *testing.T, newRepository func() (redirection.R
 	for _, tc := range testCases {
 		t.Run(tc.test, func(t *testing.T) {
 			ctx := context.Background()
-			repository, _ := newRepository()
+			repository, err := newRedisRepository(ctx)
+			assert.Nil(t, err)
 
 			if tc.alreadyExists {
 				repository.Create(ctx, value)
@@ -198,7 +143,6 @@ func _TestRedirectionFindByKey(t *testing.T, newRepository func() (redirection.R
 
 			result, err := repository.FindByKey(ctx, value.Key)
 
-			fmt.Println(result)
 			if tc.expectedErr {
 				assert.Equal(t, tc.expectedErrCode, internal.ErrorCode(err))
 			} else {
@@ -210,11 +154,17 @@ func _TestRedirectionFindByKey(t *testing.T, newRepository func() (redirection.R
 	}
 }
 
-func clearRedis(ctx context.Context, connectionString string) error {
+func newRedisRepository(ctx context.Context) (redirection.Repository, error) {
+	// Read redis connection string from env
+	connectionString, err := internal.GetEnv("INTEGRATION_REDIS_CONNECTION_STRING")
+	if err != nil {
+		return nil, err
+	}
+
 	// Parse connection string and check for errors
 	opt, err := _redis.ParseURL(connectionString)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Create a new redis client
@@ -222,6 +172,9 @@ func clearRedis(ctx context.Context, connectionString string) error {
 
 	// Flush all keys
 	err = client.FlushAll(ctx).Err()
+	if err != nil {
+		return nil, err
+	}
 
-	return err
+	return redis.NewRedirectionRepository(connectionString)
 }
