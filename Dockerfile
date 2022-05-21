@@ -14,10 +14,34 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy the project files
-COPY . .
+COPY cmd cmd
+COPY internal internal
+COPY tools tools
+COPY tools tools
+COPY Makefile ./
+COPY LICENSE ./
+COPY README.md ./
+
+# Generate code
+RUN make generate-code
+
+# Generate docs
+RUN make generate-docs
+
+# Define development target
+FROM build AS development
+
+# Build with -race option
+RUN make build-for-development
+
+# Start development
+CMD ["./main"]
+
+# Define production target
+FROM build AS production
 
 # Build project
-RUN make build
+RUN make build-for-production
 
 # Start from fresh image
 FROM alpine:3.15
@@ -26,7 +50,7 @@ FROM alpine:3.15
 WORKDIR /app
 
 # Copy binary from build stage
-COPY --from=build /app/main /app/main
+COPY --from=production /app/main /app/main
 
 # Start
 CMD ["./main"]
