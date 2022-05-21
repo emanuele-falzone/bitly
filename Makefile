@@ -47,6 +47,7 @@ generate-docs:
 	# Generate documentation for grpc service
 	protoc \
 		--doc_out=./docs \
+  		--doc_opt=html,proto.html \
 		internal/adapter/service/grpc/pb/bitly_service.proto
 
 	# Install swag

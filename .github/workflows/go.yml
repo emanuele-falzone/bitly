@@ -60,6 +60,6 @@ jobs:
       with:
         name: documentation
         path: |
-          docs/index.html
+          docs/proto.html
           docs/swagger.yaml
           docs/swagger.json
