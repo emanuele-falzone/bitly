@@ -12,6 +12,8 @@ type DeleteRedirectionRequest struct {
 
 // DeleteRedirectionHandler godoc
 // @Summary      Delete the redirection assiciated with a specific key
+// @Accept       json
+// @Produce      json
 // @Param        key  path      string  true  "Location"
 // @Success      204
 // @Failure      404      {object}  ErrorMessage

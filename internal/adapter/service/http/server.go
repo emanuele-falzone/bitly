@@ -52,7 +52,7 @@ func (s *Server) Stop() {
 
 type ErrorMessage struct {
 	Message string `json:"error"`
-}
+} //@name Error
 
 func ErrorHandler(c *fiber.Ctx, err error) error {
 	// Compute the human readable version of the error

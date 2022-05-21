@@ -9,13 +9,14 @@ import (
 )
 
 type CreateRedirectionRequest struct {
-	Location string `json:"location" validate:"required,url"`
-}
+	Location string `json:"location" validate:"required,url" example:"https://youtu.be/yhC-361QGJw"`
+} //@name Location
 
 // CreateRedirectionHandler godoc
 // @Summary      Create a new redirection
 // @Accept       json
-// @Param        location  body      CreateRedirectionRequest  true  "Location"
+// @Produce      json
+// @Param        location body      CreateRedirectionRequest  true  "Location"
 // @Success      202
 // @Header       202      {string}  Location  "/key"
 // @Failure      400      {object}  ErrorMessage

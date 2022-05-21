@@ -12,6 +12,8 @@ type RedirectionLocationRequest struct {
 
 // RedirectionLocationHandler godoc
 // @Summary      Get redirection to a specific location
+// @Accept       json
+// @Produce      json
 // @Param        key  path      string  true  "Location"
 // @Success      302
 // @Header       302      {string}  Location  "http://www.google.com"

@@ -12,10 +12,12 @@ type RedirectionCountRequest struct {
 
 type RedirectionCountResponse struct {
 	Count int `json:"count"`
-}
+} //@name Count
 
 // RedirectionCountHandler godoc
 // @Summary      Get the redirection count
+// @Accept       json
+// @Produce      json
 // @Param        key  path      string  true  "Location"
 // @Success      200 {object}  		RedirectionCountResponse
 // @Failure      404      {object}  ErrorMessage
