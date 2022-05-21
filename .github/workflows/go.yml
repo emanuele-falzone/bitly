@@ -59,6 +59,7 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: documentation
-        path: docs/index.html
-        path: docs/swagger.yaml
-        path: docs/swagger.json
+        path: |
+          docs/index.html
+          docs/swagger.yaml
+          docs/swagger.json
