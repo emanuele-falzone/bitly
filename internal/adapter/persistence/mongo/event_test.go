@@ -67,8 +67,8 @@ func TestIntegration_Mongo_EventRepository_FindByRedirection(t *testing.T) {
 	type testCase struct {
 		test            string
 		count           int    // Number of times the event has to be inserted into the repository
-		expectedErr     bool   // Expecting error
-		expectedErrCode string // Expected error code (if expectedErr is true)
+		expectedErr     bool   // True if expecting error
+		expectedErrCode string // Expected error code
 	}
 
 	// Create new test cases
