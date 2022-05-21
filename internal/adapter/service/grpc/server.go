@@ -1,3 +1,5 @@
+//go:build e2e
+
 package grpc
 
 //go:generate protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative ./pb/bitly_service.proto
@@ -20,31 +22,37 @@ import (
 
 type Server struct {
 	pb.UnimplementedBitlyServiceServer
-	app    *application.Application
-	server *grpc.Server
+	application *application.Application
+	grpcServer  *grpc.Server
 }
 
-func NewServer(app *application.Application) *Server {
-	return &Server{app: app}
+func NewServer(application *application.Application) *Server {
+	return &Server{application: application}
 }
 
 func (s *Server) Start(port int) error {
+	// Announce on the local network
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return err
 	}
-	s.server = grpc.NewServer()
-	pb.RegisterBitlyServiceServer(s.server, s)
+
+	// Create new grpc server
+	s.grpcServer = grpc.NewServer()
+
+	// Register for bitly service
+	pb.RegisterBitlyServiceServer(s.grpcServer, s)
 
 	// Register reflection service on gRPC server.
-	reflection.Register(s.server)
+	reflection.Register(s.grpcServer)
 
-	err = s.server.Serve(lis)
-	return err
+	// Serve
+	return s.grpcServer.Serve(lis)
 }
 
 func (s *Server) Stop() {
-	s.server.GracefulStop()
+	// Gracefully stop server
+	s.grpcServer.GracefulStop()
 }
 
 func (s *Server) CreateRedirection(ctx context.Context, in *pb.CreateRedirectionRequest) (*pb.CreateRedirectionResponse, error) {
@@ -52,7 +60,7 @@ func (s *Server) CreateRedirection(ctx context.Context, in *pb.CreateRedirection
 	cmd := command.CreateRedirectionCommand{Location: in.Location}
 
 	// Command execution
-	value, err := s.app.Commands.CreateRedirection.Handle(ctx, cmd)
+	value, err := s.application.Commands.CreateRedirection.Handle(ctx, cmd)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
@@ -66,7 +74,7 @@ func (s *Server) DeleteRedirection(ctx context.Context, in *pb.DeleteRedirection
 	cmd := command.DeleteRedirectionCommand{Key: in.Key}
 
 	// Command execution
-	err := s.app.Commands.DeleteRedirection.Handle(ctx, cmd)
+	err := s.application.Commands.DeleteRedirection.Handle(ctx, cmd)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
@@ -80,7 +88,7 @@ func (s *Server) GetRedirectionLocation(ctx context.Context, in *pb.GetRedirecti
 	q := query.RedirectionLocationQuery{Key: in.Key}
 
 	// Query execution
-	value, err := s.app.Queries.RedirectionLocation.Handle(ctx, q)
+	value, err := s.application.Queries.RedirectionLocation.Handle(ctx, q)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
@@ -94,7 +102,7 @@ func (s *Server) GetRedirectionCount(ctx context.Context, in *pb.GetRedirectionC
 	q := query.RedirectionCountQuery{Key: in.Key}
 
 	// Query execution
-	value, err := s.app.Queries.RedirectionCount.Handle(ctx, q)
+	value, err := s.application.Queries.RedirectionCount.Handle(ctx, q)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
@@ -105,7 +113,10 @@ func (s *Server) GetRedirectionCount(ctx context.Context, in *pb.GetRedirectionC
 
 // Map internal errors to grpc error
 func mapErrorToGrpcError(err error) error {
+	// Compute error message
 	msg := internal.ErrorMessage(err)
+
+	// Switch over error code
 	switch internal.ErrorCode(err) {
 	case internal.ErrInvalid:
 		return status.Error(codes.InvalidArgument, msg)
@@ -114,6 +125,7 @@ func mapErrorToGrpcError(err error) error {
 	case internal.ErrConflict:
 		return status.Error(codes.AlreadyExists, "")
 	default:
+		// Fallback to internal error
 		return status.Errorf(codes.Internal, msg)
 	}
 }
