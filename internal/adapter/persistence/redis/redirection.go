@@ -73,3 +73,30 @@ func (r RedisRedirectionRepository) FindByKey(ctx context.Context, key string) (
 	// Use key and location to create a new redirection
 	return redirection.New(key, location)
 }
+
+func (r RedisRedirectionRepository) FindAll(ctx context.Context) ([]redirection.Redirection, error) {
+	// Get all the keys from redis
+	keys, err := r.client.Keys(ctx, "*").Result()
+	if err != nil {
+		// There was some problem with Redis return error
+		return nil, &internal.Error{Code: internal.ErrInternal, Op: "RedisRedirectionRepository: FindAll", Err: err}
+	}
+
+	// Create new empty result set
+	result := []redirection.Redirection{}
+
+	// Iterate over keys
+	for _, key := range keys {
+		// Find the value associated with the specified key
+		value, err := r.FindByKey(ctx, key)
+		if err != nil {
+			// There was some problem with Redis return error
+			return nil, &internal.Error{Code: internal.ErrInternal, Op: "RedisRedirectionRepository: FindAll", Err: err}
+		}
+		// Append the value to the result
+		result = append(result, value)
+	}
+
+	// Return result
+	return result, nil
+}

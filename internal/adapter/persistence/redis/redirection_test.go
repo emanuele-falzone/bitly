@@ -178,6 +178,60 @@ func TestIntegration_Redis_RedirectionRepository_FindByKey(t *testing.T) {
 	}
 }
 
+func TestIntegration_Redis_RedirectionRepository_FindAll(t *testing.T) {
+	// Build our needed testcase data struct
+	type testCase struct {
+		test          string
+		redirections  []redirection.Redirection // Redirection stored inside the repository
+		alreadyExists bool                      // True if the redirection should already exist in the repository
+		expectedCount int                       // Expected number of results returned
+	}
+
+	// Create new test cases
+	testCases := []testCase{
+		{
+			test: "Existing Redirection",
+			redirections: []redirection.Redirection{
+				{Key: "a", Location: "http://www.google.com"},
+				{Key: "b", Location: "http://www.google.com"},
+				{Key: "c", Location: "http://www.google.com"},
+				{Key: "d", Location: "http://www.google.com"},
+			},
+			expectedCount: 4,
+		}, {
+			test:          "Redirection Does Not Exists",
+			redirections:  []redirection.Redirection{},
+			expectedCount: 0,
+		},
+	}
+
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run(tc.test, func(t *testing.T) {
+			// Create a new context
+			ctx := context.Background()
+
+			// Create a new (clean) redis repository
+			repository, err := newRedisRepository(ctx)
+			assert.Nil(t, err)
+
+			// Create the redirections in the repository
+			for _, value := range tc.redirections {
+				repository.Create(ctx, value)
+			}
+
+			// Retrieve redirection from repository
+			result, err := repository.FindAll(ctx)
+
+			// Assert error
+			assert.Nil(t, err)
+
+			// Assert result length
+			assert.Equal(t, tc.expectedCount, len(result))
+		})
+	}
+}
+
 func newRedisRepository(ctx context.Context) (redirection.Repository, error) {
 	// Read redis connection string from env
 	connectionString, err := internal.GetEnv("INTEGRATION_REDIS_CONNECTION_STRING")

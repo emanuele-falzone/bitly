@@ -7,6 +7,7 @@ import (
 
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
+	"golang.org/x/exp/maps"
 )
 
 type InMemoryRedirectionRepository struct {
@@ -59,4 +60,12 @@ func (r InMemoryRedirectionRepository) FindByKey(ctx context.Context, key string
 	}
 	// Cannot find a redirection with the given key return error
 	return redirection.Redirection{}, &internal.Error{Code: internal.ErrNotFound, Message: fmt.Sprintf("cannot find a redirection with key %s", key)}
+}
+
+func (r InMemoryRedirectionRepository) FindAll(ctx context.Context) ([]redirection.Redirection, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	// Return all the redirection values
+	return maps.Values(r.redirections), nil
 }

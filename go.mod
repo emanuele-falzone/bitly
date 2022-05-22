@@ -12,6 +12,7 @@ require (
 	github.com/pseudomuto/protoc-gen-doc v1.5.1
 	github.com/stretchr/testify v1.7.1
 	github.com/swaggo/swag v1.8.2
+	golang.org/x/exp v0.0.0-20220518171630-0b5c67f07fdf
 	google.golang.org/grpc v1.46.2
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.2.0
 	google.golang.org/protobuf v1.28.0
