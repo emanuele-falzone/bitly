@@ -199,3 +199,36 @@ func (d *HttpDriver) GetRedirectionLocation(ctx context.Context, key string) (st
 	// Return short url
 	return response.Header.Get("Location"), nil
 }
+
+func (d *HttpDriver) GetRedirectionList(ctx context.Context) ([]string, error) {
+	// Compose target url
+	url := fmt.Sprintf("%s/api/redirections", d.endpoint)
+
+	// Create a new request
+	request, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Execute the request
+	response, err := d.client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check the status code
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("status code, expected %d, got %d", http.StatusFound, response.StatusCode)
+	}
+
+	// Read response body
+	jsonResponseData, _ := ioutil.ReadAll(response.Body)
+
+	// Parse response body into map
+	responseData := map[string][]string{}
+	json.Unmarshal(jsonResponseData, &responseData)
+	fmt.Println(responseData)
+
+	// Return visit count
+	return responseData["keys"], nil
+}
