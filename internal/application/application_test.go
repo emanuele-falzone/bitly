@@ -139,3 +139,17 @@ func (d *GoDriver) GetRedirectionCount(ctx context.Context, key string) (int, er
 	// Return Count
 	return value.Count, nil
 }
+
+func (d *GoDriver) GetRedirectionList(ctx context.Context) ([]string, error) {
+	// Create a new RedirectionListQuery
+	q := query.RedirectionListQuery{}
+
+	// Query execution
+	value, err := d.application.Queries.RedirectionList.Handle(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return keys
+	return value.Keys, nil
+}
