@@ -38,9 +38,9 @@ func (s *Server) Start(port int) error {
 	s.fiberApp.Get("/swagger/*", swagger.HandlerDefault)
 
 	// Handle use cases
-	s.fiberApp.Post("/api", s.CreateRedirectionHandler)
-	s.fiberApp.Delete("/api/:key", s.DeleteRedirectionHandler)
-	s.fiberApp.Get("/api/:key/count", s.RedirectionCountHandler)
+	s.fiberApp.Post("/api/redirection", s.CreateRedirectionHandler)
+	s.fiberApp.Delete("/api/redirection/:key", s.DeleteRedirectionHandler)
+	s.fiberApp.Get("/api/redirection/:key/count", s.RedirectionCountHandler)
 	s.fiberApp.Get("/:key", s.RedirectionLocationHandler)
 
 	return s.fiberApp.Listen(fmt.Sprintf(":%d", port))

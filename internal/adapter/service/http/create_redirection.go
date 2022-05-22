@@ -21,7 +21,7 @@ type CreateRedirectionRequest struct {
 // @Header       202      {string}  Location  "/key"
 // @Failure      400      {object}  ErrorMessage
 // @Failure      500      {object}  ErrorMessage
-// @Router       /api [post]
+// @Router       /api/redirection [post]
 func (s Server) CreateRedirectionHandler(c *fiber.Ctx) error {
 	// Create a new CreateRedirectionRequest
 	request := CreateRedirectionRequest{}

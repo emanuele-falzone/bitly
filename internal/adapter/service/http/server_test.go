@@ -79,7 +79,7 @@ func CheckRedirect(req *http.Request, via []*http.Request) error {
 
 func (d *HttpDriver) CreateRedirection(ctx context.Context, location string) (string, error) {
 	// Compose target url
-	url := fmt.Sprintf("%s/api", d.endpoint)
+	url := fmt.Sprintf("%s/api/redirection", d.endpoint)
 
 	// Define request data
 	requestData := map[string]string{
@@ -120,7 +120,7 @@ func (d *HttpDriver) CreateRedirection(ctx context.Context, location string) (st
 }
 func (d *HttpDriver) DeleteRedirection(ctx context.Context, key string) error {
 	// Compose target url
-	url := fmt.Sprintf("%s/api/%s", d.endpoint, key)
+	url := fmt.Sprintf("%s/api/redirection/%s", d.endpoint, key)
 
 	// Create a new request
 	request, err := http.NewRequest(http.MethodDelete, url, nil)
@@ -145,7 +145,7 @@ func (d *HttpDriver) DeleteRedirection(ctx context.Context, key string) error {
 
 func (d *HttpDriver) GetRedirectionCount(ctx context.Context, key string) (int, error) {
 	// Compose target url
-	url := fmt.Sprintf("%s/api/%s/count", d.endpoint, key)
+	url := fmt.Sprintf("%s/api/redirection/%s/count", d.endpoint, key)
 
 	// Create a new request
 	request, err := http.NewRequest(http.MethodGet, url, nil)

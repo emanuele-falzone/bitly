@@ -18,10 +18,10 @@ type RedirectionCountResponse struct {
 // @Summary      Get the redirection count
 // @Accept       json
 // @Produce      json
-// @Param        key  path      string  true  "Location"
+// @Param        key  path      string  true  "Key"
 // @Success      200 {object}  		RedirectionCountResponse
 // @Failure      404      {object}  ErrorMessage
-// @Router       /api/{key}/count [get]
+// @Router       /api/redirection/{key}/count [get]
 func (s Server) RedirectionCountHandler(c *fiber.Ctx) error {
 	// Parse key param to create a DeleteRedirectionRequest
 	request := RedirectionCountRequest{Key: c.Params("key")}

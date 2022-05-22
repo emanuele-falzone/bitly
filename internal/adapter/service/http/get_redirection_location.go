@@ -14,7 +14,7 @@ type RedirectionLocationRequest struct {
 // @Summary      Get redirection to a specific location
 // @Accept       json
 // @Produce      json
-// @Param        key  path      string  true  "Location"
+// @Param        key  path      string  true  "Key"
 // @Success      302
 // @Header       302      {string}  Location  "http://www.google.com"
 // @Failure      404      {object}  ErrorMessage

@@ -14,10 +14,10 @@ type DeleteRedirectionRequest struct {
 // @Summary      Delete the redirection associated with a specific key
 // @Accept       json
 // @Produce      json
-// @Param        key  path      string  true  "Location"
+// @Param        key  path      string  true  "Key"
 // @Success      204
 // @Failure      404      {object}  ErrorMessage
-// @Router       /api/{key} [delete]
+// @Router       /api/redirection/{key} [delete]
 func (s Server) DeleteRedirectionHandler(c *fiber.Ctx) error {
 	// Parse key param to create a DeleteRedirectionRequest
 	request := DeleteRedirectionRequest{Key: c.Params("key")}
