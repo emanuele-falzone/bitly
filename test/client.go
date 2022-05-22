@@ -1,16 +1,14 @@
-package client
+package test
 
 import (
 	"context"
 	"errors"
 	"fmt"
 	"time"
-
-	"github.com/emanuelefalzone/bitly/test/acceptance/driver"
 )
 
 type Client struct {
-	driver   driver.Driver
+	driver   Driver
 	ctx      context.Context
 	key      string
 	location string
@@ -22,7 +20,7 @@ const (
 	delay = 50 * time.Millisecond
 )
 
-func NewClient(driver driver.Driver, ctx context.Context) *Client {
+func NewClient(driver Driver, ctx context.Context) *Client {
 	return &Client{driver: driver, ctx: ctx}
 }
 

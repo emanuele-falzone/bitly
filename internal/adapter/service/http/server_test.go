@@ -15,9 +15,7 @@ import (
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/test/acceptance/client"
-	"github.com/emanuelefalzone/bitly/test/acceptance/driver"
-	"github.com/emanuelefalzone/bitly/test/acceptance/scenario"
+	"github.com/emanuelefalzone/bitly/test"
 )
 
 // This serves as an end to end test for testing user requirements
@@ -29,7 +27,7 @@ func TestEndToEnd_HttpServer(t *testing.T) {
 	var opts = godog.Options{
 		Format:   "pretty",
 		Output:   colors.Colored(os.Stdout),
-		Paths:    []string{"../../../../test/acceptance/feature"},
+		Paths:    []string{"../../../../test/feature"},
 		TestingT: t,
 	}
 
@@ -48,9 +46,9 @@ func TestEndToEnd_HttpServer(t *testing.T) {
 	// Run godog test suite
 	status := godog.TestSuite{
 		Name: "End to end tests using the http driver",
-		ScenarioInitializer: scenario.Initialize(func() *client.Client {
+		ScenarioInitializer: test.Initialize(func() *test.Client {
 			// Create a new client for each scenario (this allows to keep the client simple)
-			return client.NewClient(driver_, ctx)
+			return test.NewClient(driver_, ctx)
 		}),
 		Options: &opts,
 	}.Run()
@@ -67,7 +65,7 @@ type HttpDriver struct {
 	endpoint string
 }
 
-func NewHttpDriver(endpoint string) driver.Driver {
+func NewHttpDriver(endpoint string) test.Driver {
 	// Create client
 	client := &http.Client{CheckRedirect: CheckRedirect}
 

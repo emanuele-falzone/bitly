@@ -11,9 +11,7 @@ import (
 	"github.com/cucumber/godog/colors"
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/adapter/service/grpc/pb"
-	"github.com/emanuelefalzone/bitly/test/acceptance/client"
-	"github.com/emanuelefalzone/bitly/test/acceptance/driver"
-	"github.com/emanuelefalzone/bitly/test/acceptance/scenario"
+	"github.com/emanuelefalzone/bitly/test"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -27,7 +25,7 @@ func TestEndToEnd_GrpcServer(t *testing.T) {
 	var opts = godog.Options{
 		Format:   "pretty",
 		Output:   colors.Colored(os.Stdout),
-		Paths:    []string{"../../../../test/acceptance/feature"},
+		Paths:    []string{"../../../../test/feature"},
 		TestingT: t,
 	}
 
@@ -46,9 +44,9 @@ func TestEndToEnd_GrpcServer(t *testing.T) {
 	// Run godog test suite
 	status := godog.TestSuite{
 		Name: "End to end tests using the grpc driver",
-		ScenarioInitializer: scenario.Initialize(func() *client.Client {
+		ScenarioInitializer: test.Initialize(func() *test.Client {
 			// Create a new client for each scenario (this allows to keep the client simple)
-			return client.NewClient(driver_, ctx)
+			return test.NewClient(driver_, ctx)
 		}),
 		Options: &opts,
 	}.Run()
@@ -64,7 +62,7 @@ type GrpcDriver struct {
 	client pb.BitlyServiceClient
 }
 
-func NewGrpcDriver(serverAddress string) (driver.Driver, error) {
+func NewGrpcDriver(serverAddress string) (test.Driver, error) {
 	// Connect to grpc server
 	conn, err := grpc.Dial(serverAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {

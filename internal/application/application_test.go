@@ -17,9 +17,7 @@ import (
 	"github.com/cucumber/godog/colors"
 	"github.com/emanuelefalzone/bitly/internal/application"
 	"github.com/emanuelefalzone/bitly/internal/domain/event"
-	"github.com/emanuelefalzone/bitly/test/acceptance/client"
-	"github.com/emanuelefalzone/bitly/test/acceptance/driver"
-	"github.com/emanuelefalzone/bitly/test/acceptance/scenario"
+	"github.com/emanuelefalzone/bitly/test"
 )
 
 /*
@@ -35,7 +33,7 @@ func TestAcceptance_Application(t *testing.T) {
 	var opts = godog.Options{
 		Format:   "pretty",
 		Output:   colors.Colored(os.Stdout),
-		Paths:    []string{"../../test/acceptance/feature"},
+		Paths:    []string{"../../test/feature"},
 		TestingT: t,
 	}
 
@@ -66,9 +64,9 @@ func TestAcceptance_Application(t *testing.T) {
 	// Run godog test suite
 	status := godog.TestSuite{
 		Name: "Acceptance tests using go driver and in memory repository",
-		ScenarioInitializer: scenario.Initialize(func() *client.Client {
+		ScenarioInitializer: test.Initialize(func() *test.Client {
 			// Create a new client for each scenario (this allows to keep the client simple)
-			return client.NewClient(driver_, ctx)
+			return test.NewClient(driver_, ctx)
 		}),
 		Options: &opts,
 	}.Run()
@@ -85,7 +83,7 @@ type GoDriver struct {
 	application *application.Application
 }
 
-func NewGoDriver(application *application.Application) driver.Driver {
+func NewGoDriver(application *application.Application) test.Driver {
 	return &GoDriver{application: application}
 }
 

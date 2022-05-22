@@ -1,11 +1,10 @@
-package scenario
+package test
 
 import (
 	"github.com/cucumber/godog"
-	"github.com/emanuelefalzone/bitly/test/acceptance/client"
 )
 
-func Initialize(fn func() *client.Client) func(*godog.ScenarioContext) {
+func Initialize(fn func() *Client) func(*godog.ScenarioContext) {
 	return func(ctx *godog.ScenarioContext) {
 		client := fn()
 
