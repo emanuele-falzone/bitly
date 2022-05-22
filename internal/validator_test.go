@@ -53,9 +53,13 @@ func TestValidator(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.test, func(t *testing.T) {
-
+			// Create new sample with given location and count
 			sample := &Sample{Location: tc.location, Count: tc.count}
+
+			// Validate sample
 			err := internal.Validate(sample)
+
+			// CHeck expected error
 			if tc.expectedErr {
 				assert.Equal(t, tc.expectedCode, internal.ErrorCode(err))
 			} else {

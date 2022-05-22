@@ -45,10 +45,15 @@ func TestEnvironment(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.test, func(t *testing.T) {
+			// Set env variable if specified
 			if tc.setEnv {
 				os.Setenv(tc.key, tc.value)
 			}
+
+			// Read environment variable
 			value, err := internal.GetEnv(tc.key)
+
+			// Check and assert error
 			if tc.expectedErr {
 				assert.Equal(t, tc.expectedErrCode, internal.ErrorCode(err))
 			} else {
