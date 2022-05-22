@@ -102,3 +102,11 @@ func (d *GrpcDriver) GetRedirectionCount(ctx context.Context, key string) (int, 
 	}
 	return int(response.Count), nil
 }
+
+func (d *GrpcDriver) GetRedirectionList(ctx context.Context) ([]string, error) {
+	response, err := d.client.GetRedirectionList(ctx, &pb.GetRedirectionListRequest{})
+	if err != nil {
+		return nil, err
+	}
+	return response.Keys, nil
+}
