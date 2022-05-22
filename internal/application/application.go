@@ -21,6 +21,7 @@ type Commands struct {
 type Queries struct {
 	RedirectionLocation query.RedirectionLocationHandler
 	RedirectionCount    query.RedirectionCountHandler
+	RedirectionList     query.RedirectionListHandler
 }
 
 func New(redirections redirection.Repository, events event.Repository, generator service.KeyGenerator, dispatcher *event.Dispatcher) *Application {
@@ -32,6 +33,7 @@ func New(redirections redirection.Repository, events event.Repository, generator
 		Queries: Queries{
 			RedirectionLocation: query.NewRedirectionLocationHandler(redirections, dispatcher),
 			RedirectionCount:    query.NewRedirectionCountHandler(redirections, events),
+			RedirectionList:     query.NewRedirectionListHandler(redirections),
 		},
 	}
 }
