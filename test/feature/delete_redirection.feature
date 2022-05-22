@@ -1,6 +1,9 @@
 # language: en
 
 Feature: Delete a short link
+    As an administrator
+    I want to delete a short link
+    So that I can prevent people from accessic a specific resource
 
     Scenario: The short link exists
         Given that I got a short link for http://www.google.com

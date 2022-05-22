@@ -1,6 +1,9 @@
 # language: en
 
 Feature: Create a short link for given link
+    As an administrator
+    I want to create a short link
+    So that I can easily share a resource with other people
 
     Scenario: The given link is valid
         When I command the system to shorten the link http://www.google.com
