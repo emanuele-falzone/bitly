@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"golang.org/x/exp/slices"
 )
 
 type Client struct {
@@ -14,6 +16,8 @@ type Client struct {
 	location string
 	count    int
 	err      error
+	keys     []string
+	gotKeys  []string
 }
 
 const (
@@ -26,6 +30,7 @@ func NewClient(driver Driver, ctx context.Context) *Client {
 
 func (c *Client) CreateRedirection(location string) error {
 	c.key, c.err = c.driver.CreateRedirection(c.ctx, location)
+	c.keys = append(c.keys, c.key)
 	time.Sleep(delay)
 	return nil
 }
@@ -48,8 +53,8 @@ func (c *Client) GetRedirectionLocation() error {
 	return nil
 }
 
-func (c *Client) GetRedirectionCount() error {
-	c.count, c.err = c.driver.GetRedirectionCount(c.ctx, c.key)
+func (c *Client) GetRedirectionList() error {
+	c.gotKeys, c.err = c.driver.GetRedirectionList(c.ctx)
 	time.Sleep(delay)
 	return nil
 }
@@ -62,9 +67,24 @@ func (c *Client) GetRedirectionLocationTimes(times int) error {
 	return nil
 }
 
+func (c *Client) GetRedirectionCount() error {
+	c.count, c.err = c.driver.GetRedirectionCount(c.ctx, c.key)
+	time.Sleep(delay)
+	return nil
+}
+
 func (c *Client) ConfirmLocationToBe(location string) error {
 	if location != c.location {
 		return fmt.Errorf("the locations are not equal, expected %s, got %s", location, c.location)
+	}
+	return nil
+}
+
+func (c *Client) ConfirmCorrectList() error {
+	for _, mine := range c.keys {
+		if !slices.Contains(c.gotKeys, mine) {
+			return fmt.Errorf("the key %s was not found in %s", mine, c.gotKeys)
+		}
 	}
 	return nil
 }
