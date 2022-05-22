@@ -12,6 +12,7 @@ services:
       - MONGO_CONNECTION_STRING=mongodb://root:example@mongo:27017
       - GRPC_PORT=6060
       - HTTP_PORT=7070
+    restart: always
     ports:
       - 6060:6060
       - 7070:7070
@@ -21,6 +22,7 @@ services:
 
   grpc-client:
     image: fullstorydev/grpcui:v1.3.0
+    restart: always
     ports:
       - 8080:8080
     command: -plaintext bitly:6060
@@ -33,11 +35,13 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
+    restart: always
     ports:
       - 27017:27017
 
   redis:
     image: redis:6.2.7-alpine
     hostname: redis
+    restart: always
     ports:
       - 6379:6379
