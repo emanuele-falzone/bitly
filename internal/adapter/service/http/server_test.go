@@ -1,4 +1,4 @@
-//go:build e2e
+//--go:build e2e
 
 package http_test
 
@@ -112,11 +112,15 @@ func (d *HttpDriver) CreateRedirection(ctx context.Context, location string) (st
 		return "", fmt.Errorf("status code, expected %d, got %d", http.StatusCreated, response.StatusCode)
 	}
 
-	// Compute key from location header
-	key := response.Header.Get("Location")[1:]
+	// Read response body
+	jsonResponseData, _ := ioutil.ReadAll(response.Body)
+
+	// Parse response body into map
+	responseData := map[string]string{}
+	json.Unmarshal(jsonResponseData, &responseData)
 
 	// Return short url
-	return key, nil
+	return responseData["key"], nil
 }
 func (d *HttpDriver) DeleteRedirection(ctx context.Context, key string) error {
 	// Compose target url
@@ -225,10 +229,15 @@ func (d *HttpDriver) GetRedirectionList(ctx context.Context) ([]string, error) {
 	jsonResponseData, _ := ioutil.ReadAll(response.Body)
 
 	// Parse response body into map
-	responseData := map[string][]string{}
+	responseData := map[string][]map[string]string{}
 	json.Unmarshal(jsonResponseData, &responseData)
-	fmt.Println(responseData)
+
+	// Compute key slice
+	keys := []string{}
+	for _, item := range responseData["items"] {
+		keys = append(keys, item["key"])
+	}
 
 	// Return visit count
-	return responseData["keys"], nil
+	return keys, nil
 }

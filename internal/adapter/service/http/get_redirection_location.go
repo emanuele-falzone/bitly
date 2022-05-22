@@ -18,6 +18,7 @@ type RedirectionLocationRequest struct {
 // @Success      302
 // @Header       302      {string}  Location  "http://www.google.com"
 // @Failure      404      {object}  ErrorMessage
+// @Failure      500      {object}  ErrorMessage
 // @Router       /{key} [get]
 func (s Server) RedirectionLocationHandler(c *fiber.Ctx) error {
 	// Parse key param to create a DeleteRedirectionRequest

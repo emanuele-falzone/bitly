@@ -1,8 +1,6 @@
 package http
 
 import (
-	"fmt"
-
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/application/command"
 	"github.com/gofiber/fiber/v2"
@@ -17,7 +15,7 @@ type CreateRedirectionRequest struct {
 // @Accept       json
 // @Produce      json
 // @Param        location body      CreateRedirectionRequest  true  "Location"
-// @Success      202
+// @Success      202	  {object}  RedirectionRepresentation
 // @Header       202      {string}  Location  "/key"
 // @Failure      400      {object}  ErrorMessage
 // @Failure      500      {object}  ErrorMessage
@@ -44,9 +42,15 @@ func (s Server) CreateRedirectionHandler(c *fiber.Ctx) error {
 		return err
 	}
 
-	// Set location header
-	c.Location(fmt.Sprintf("/%s", value.Key))
+	// Create response
+	response := getRedirectionRepresentation(value.Key)
 
-	// Send status created
-	return c.SendStatus(fiber.StatusCreated)
+	// Set location header
+	c.Location(response.Links.Self.Href)
+
+	// Set response status
+	c.Status(fiber.StatusCreated)
+
+	// Send response
+	return c.JSON(response)
 }

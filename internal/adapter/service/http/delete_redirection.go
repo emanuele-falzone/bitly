@@ -17,6 +17,7 @@ type DeleteRedirectionRequest struct {
 // @Param        key  path      string  true  "Key"
 // @Success      204
 // @Failure      404      {object}  ErrorMessage
+// @Failure      500      {object}  ErrorMessage
 // @Router       /api/redirection/{key} [delete]
 func (s Server) DeleteRedirectionHandler(c *fiber.Ctx) error {
 	// Parse key param to create a DeleteRedirectionRequest

@@ -5,15 +5,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type RedirectionListResponse struct {
-	Keys []string `json:"keys"`
-} //@name Keys
-
 // RedirectionListHandler godoc
 // @Summary      Get the redirection list
 // @Accept       json
 // @Produce      json
-// @Success      200 {object}  		RedirectionListResponse
+// @Success      200 {object}  	   RedirectionListRepresentation
+// @Failure      500      {object}  ErrorMessage
 // @Router       /api/redirections [get]
 func (s Server) RedirectionListHandler(c *fiber.Ctx) error {
 	// Create a new RedirectionListQuery
@@ -26,6 +23,6 @@ func (s Server) RedirectionListHandler(c *fiber.Ctx) error {
 	}
 
 	// Create and return encoded response
-	response := RedirectionListResponse{Keys: value.Keys}
+	response := getRedirectionListRepresentation(value.Keys)
 	return c.JSON(response)
 }

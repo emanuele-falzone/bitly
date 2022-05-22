@@ -10,17 +10,14 @@ type RedirectionCountRequest struct {
 	Key string `validate:"min=1"`
 }
 
-type RedirectionCountResponse struct {
-	Count int `json:"count"`
-} //@name Count
-
 // RedirectionCountHandler godoc
 // @Summary      Get the redirection count
 // @Accept       json
 // @Produce      json
 // @Param        key  path      string  true  "Key"
-// @Success      200 {object}  		RedirectionCountResponse
+// @Success      200 {object}  		RedirectionCountRepresentation
 // @Failure      404      {object}  ErrorMessage
+// @Failure      500      {object}  ErrorMessage
 // @Router       /api/redirection/{key}/count [get]
 func (s Server) RedirectionCountHandler(c *fiber.Ctx) error {
 	// Parse key param to create a DeleteRedirectionRequest
@@ -42,6 +39,6 @@ func (s Server) RedirectionCountHandler(c *fiber.Ctx) error {
 	}
 
 	// Create and return encoded response
-	response := RedirectionCountResponse{Count: value.Count}
+	response := getRedirectionCountRepresentation(request.Key, value.Count)
 	return c.JSON(response)
 }
