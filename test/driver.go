@@ -9,4 +9,5 @@ type Driver interface {
 	DeleteRedirection(ctx context.Context, key string) error
 	GetRedirectionLocation(ctx context.Context, key string) (string, error)
 	GetRedirectionCount(ctx context.Context, key string) (int, error)
+	GetRedirectionList(ctx context.Context) ([]string, error)
 }
