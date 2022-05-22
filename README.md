@@ -1,6 +1,11 @@
 # bitly
 
-## Usage
+## Setup and running
+
+Requirements:
+- Docker: https://docs.docker.com/get-docker/
+- Docker-compose: https://docs.docker.com/compose/install/
+
 ```
 docker-compose up --detach
 ```
