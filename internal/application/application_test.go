@@ -23,15 +23,15 @@ import (
 )
 
 /*
-This is the most important acceptance test.
-It allows for testing the application directly using golang application code
-In this way we ensure that no business logic has leaked out to any service adapter
+This is the most important test.
+It allows for testing the application directly using golang application code.
+In this way we ensure that no business logic has leaked out to any service adapter.
 */
-
 func TestAcceptance_GoDriver_InMemoryRepository(t *testing.T) {
-
+	// Create a new context
 	ctx := context.Background()
 
+	// Define godog options
 	var opts = godog.Options{
 		Format:   "pretty",
 		Output:   colors.Colored(os.Stdout),
@@ -39,18 +39,35 @@ func TestAcceptance_GoDriver_InMemoryRepository(t *testing.T) {
 		TestingT: t,
 	}
 
+	// Create a new in memory redirection repository
 	redirectionRepository := memory.NewRedirectionRepository()
+
+	// Create a new in memory event repository
 	eventRepository := memory.NewEventRepository()
 
+	// Create a new random key generator
 	keyGenerator := service.NewRandomKeyGenerator(time.Now().Unix())
+
+	// Create a new event dispatcher
 	dispatcher := event.NewDispatcher(ctx)
-	dispatcher.Register(service.NewEventStore(eventRepository))
+
+	// Create a new event store
+	eventStore := service.NewEventStore(eventRepository)
+
+	// Register the event store as event listener
+	dispatcher.Register(eventStore)
+
+	// Create a new application
 	application_ := application.New(redirectionRepository, eventRepository, keyGenerator, dispatcher)
+
+	// Create a new go driver
 	driver_ := NewGoDriver(application_)
 
+	// Run godog test suite
 	status := godog.TestSuite{
 		Name: "Acceptance tests using go driver and in memory repository",
 		ScenarioInitializer: scenario.Initialize(func() *client.Client {
+			// Create a new client for each scenario (this allows to keep the client simple)
 			return client.NewClient(driver_, ctx)
 		}),
 		Options: &opts,
