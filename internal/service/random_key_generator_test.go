@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestRandomKeyGenerator_NextKey(t *testing.T) {
+func TestRandomKeyGenerator(t *testing.T) {
 	// Build our needed testcase data struct
 	type testCase struct {
 		location string

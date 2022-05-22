@@ -11,7 +11,7 @@ import (
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 )
 
-func TestRedirection_New(t *testing.T) {
+func TestDomainRedirection_New(t *testing.T) {
 	// Build our needed testcase data struct
 	type testCase struct {
 		test            string

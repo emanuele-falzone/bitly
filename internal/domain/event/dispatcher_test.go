@@ -13,7 +13,7 @@ import (
 	"github.com/golang/mock/gomock"
 )
 
-func TestDispatch(t *testing.T) {
+func TestDomainEventDispatcher(t *testing.T) {
 	// Build our needed testcase data struct
 	type testCase struct {
 		test  string
