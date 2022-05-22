@@ -27,7 +27,7 @@ This is the most important test.
 It allows for testing the application directly using golang application code.
 In this way we ensure that no business logic has leaked out to any service adapter.
 */
-func TestAcceptance_GoDriver_InMemoryRepository(t *testing.T) {
+func TestAcceptance_Application(t *testing.T) {
 	// Create a new context
 	ctx := context.Background()
 
