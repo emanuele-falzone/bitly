@@ -35,16 +35,24 @@ func TestEventStore(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.test, func(t *testing.T) {
+			// Create new context
+			ctx := context.Background()
+
+			// Create new gomock controller
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			ctx := context.Background()
+			// Create new mock event repository
 			repository := mock.NewMockEventRepository(ctrl)
-			logger := service.NewEventStore(repository)
 
+			// Create new event store with the given repository
+			eventStore := service.NewEventStore(repository)
+
+			// Expect repository create method to be invoked once
 			repository.EXPECT().Create(gomock.Any(), gomock.Any())
 
-			logger.Consume(ctx, tc.event)
+			// Consume the event
+			eventStore.Consume(ctx, tc.event)
 		})
 	}
 }
