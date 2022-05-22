@@ -14,74 +14,124 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateRedirection(t *testing.T) {
-	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestApplicationCommand_CreateRedirection(t *testing.T) {
+	// Build our needed testcase data struct
+	type testCaseRedirectionRepository struct {
+		createMethodCall              bool   // True if we expect a call to the method
+		createMethodCallReturnErr     bool   // True if we expect the method to return an error
+		createMethodCallReturnErrCode string // Expected error code
+	}
+	type testCaseKeyGenerator struct {
+		nextKeyMethodCall            bool   // True if we expect a call to the method
+		nextKeyMethodCallReturnValue string // Expected value returned by the method
+	}
+	type testCase struct {
+		test                        string
+		location                    string // Location URL to be shortened
+		key                         string // key associated to the redirection location
+		expectRedirectionRepository testCaseRedirectionRepository
+		expectKeyGenerator          testCaseKeyGenerator
+		expectErr                   bool   // True if expecting error after command execution
+		expectErrCode               string // Expected error code
+	}
 
-	// GIVEN
-	redirectionRepository := mock.NewMockRedirectionRepository(ctrl)
-	redirectionRepository.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
+	// Create new test cases
+	testCases := []testCase{
+		{
+			test:     "Success",
+			location: "http://www.google.com",
+			expectRedirectionRepository: testCaseRedirectionRepository{
+				createMethodCall:          true,
+				createMethodCallReturnErr: false,
+			},
+			expectKeyGenerator: testCaseKeyGenerator{
+				nextKeyMethodCall:            true,
+				nextKeyMethodCallReturnValue: "short",
+			},
+			expectErr: false,
+		},
+		{
+			test:     "ErrInvalid",
+			location: "google",
+			expectRedirectionRepository: testCaseRedirectionRepository{
+				createMethodCall: false,
+			},
+			expectKeyGenerator: testCaseKeyGenerator{
+				nextKeyMethodCall:            true,
+				nextKeyMethodCallReturnValue: "short",
+			},
+			expectErr:     true,
+			expectErrCode: internal.ErrInvalid,
+		},
+		{
+			test:     "ErrConflict",
+			location: "http://www.google.com",
+			expectRedirectionRepository: testCaseRedirectionRepository{
+				createMethodCall:              true,
+				createMethodCallReturnErr:     true,
+				createMethodCallReturnErrCode: internal.ErrConflict,
+			},
+			expectKeyGenerator: testCaseKeyGenerator{
+				nextKeyMethodCall:            true,
+				nextKeyMethodCallReturnValue: "short",
+			},
+			expectErr:     true,
+			expectErrCode: internal.ErrConflict,
+		},
+	}
 
-	keyGenerator := mock.NewMockKeyGenerator(ctrl)
-	keyGenerator.EXPECT().NextKey(gomock.Any()).Return("abcdef")
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run(tc.test, func(t *testing.T) {
+			// Create a new context
+			ctx := context.Background()
 
-	dispatcher := event.NewDispatcher(ctx)
+			// Create new gomock controller
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	handler := command.NewCreateRedirectionHandler(redirectionRepository, keyGenerator, dispatcher)
+			// Create new mock repository
+			redirectionRepository := mock.NewMockRedirectionRepository(ctrl)
 
-	// WHEN
-	cmd := command.CreateRedirectionCommand{Location: "http://www.google.com"}
-	result, err := handler.Handle(ctx, cmd)
+			// Expect create method call
+			if tc.expectRedirectionRepository.createMethodCall {
+				// Expect error
+				if tc.expectRedirectionRepository.createMethodCallReturnErr {
+					err := &internal.Error{Code: tc.expectRedirectionRepository.createMethodCallReturnErrCode}
+					redirectionRepository.EXPECT().Create(gomock.Any(), gomock.Any()).Return(err)
+				} else {
+					redirectionRepository.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
+				}
+			}
 
-	// THEN
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "abcdef", result.Key)
-}
+			// Create new mock key generator
+			keyGenerator := mock.NewMockKeyGenerator(ctrl)
 
-func TestCreateRedirection_InvalidErr(t *testing.T) {
-	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+			// Expect next key method call
+			if tc.expectKeyGenerator.nextKeyMethodCall {
+				keyGenerator.EXPECT().NextKey(gomock.Any()).Return(tc.expectKeyGenerator.nextKeyMethodCallReturnValue)
+			}
 
-	// GIVEN
-	redirectionRepository := mock.NewMockRedirectionRepository(ctrl)
+			// Create new event dispatcher
+			dispatcher := event.NewDispatcher(ctx)
 
-	keyGenerator := mock.NewMockKeyGenerator(ctrl)
-	keyGenerator.EXPECT().NextKey(gomock.Any()).Return("abcdef")
+			// Create new CreateRedirectionHandlerCommand handler
+			handler := command.NewCreateRedirectionHandler(redirectionRepository, keyGenerator, dispatcher)
 
-	dispatcher := event.NewDispatcher(ctx)
+			// Create new CreateRedirectionCommand with given location
+			cmd := command.CreateRedirectionCommand{Location: tc.location}
 
-	handler := command.NewCreateRedirectionHandler(redirectionRepository, keyGenerator, dispatcher)
+			// Execute command and save result
+			result, err := handler.Handle(ctx, cmd)
 
-	// WHEN
-	cmd := command.CreateRedirectionCommand{Location: "google.com"}
-	_, err := handler.Handle(ctx, cmd)
-
-	// THEN
-	assert.Equal(t, internal.ErrInvalid, internal.ErrorCode(err))
-}
-
-func TestCreateRedirection_ConflictErr(t *testing.T) {
-	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	// GIVEN
-	redirectionRepository := mock.NewMockRedirectionRepository(ctrl)
-	redirectionRepository.EXPECT().Create(gomock.Any(), gomock.Any()).Return(&internal.Error{Code: internal.ErrConflict})
-
-	keyGenerator := mock.NewMockKeyGenerator(ctrl)
-	keyGenerator.EXPECT().NextKey(gomock.Any()).Return("abcdef")
-
-	dispatcher := event.NewDispatcher(ctx)
-
-	handler := command.NewCreateRedirectionHandler(redirectionRepository, keyGenerator, dispatcher)
-
-	// WHEN
-	cmd := command.CreateRedirectionCommand{Location: "http://www.google.com"}
-	_, err := handler.Handle(ctx, cmd)
-
-	// THEN
-	assert.Equal(t, internal.ErrConflict, internal.ErrorCode(err))
+			// Check expected error
+			if tc.expectErr {
+				assert.Equal(t, tc.expectErrCode, internal.ErrorCode(err))
+			} else {
+				// CHeck result content
+				assert.Nil(t, err)
+				assert.Equal(t, tc.expectKeyGenerator.nextKeyMethodCallReturnValue, result.Key)
+			}
+		})
+	}
 }

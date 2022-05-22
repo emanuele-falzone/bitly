@@ -15,45 +15,94 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRedirectionLocation(t *testing.T) {
-	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestApplicationQuery_RedirectionLocation(t *testing.T) {
+	// Build our needed testcase data struct
+	type testCaseRedirectionRepository struct {
+		findByKeyMethodCall              bool   // True if we expect a call to the method
+		findByKeyMethodCallReturnErr     bool   // True if we expect the method to return an error
+		findByKeyMethodCallReturnErrCode string // Expected error code
+	}
+	type testCase struct {
+		test                        string
+		location                    string // Location URL to be shortened
+		key                         string // key associated to the redirection location
+		expectRedirectionRepository testCaseRedirectionRepository
+		expectErr                   bool   // True if expecting error after query execution
+		expectErrCode               string // Expected error code
+	}
 
-	// GIVEN
-	redirectionRepository := mock.NewMockRedirectionRepository(ctrl)
-	redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(redirection.New("abcdef", "http:/www.google.com"))
+	// Create new test cases
+	testCases := []testCase{
+		{
+			test:     "Success",
+			location: "http://www.google.com",
+			key:      "short",
+			expectRedirectionRepository: testCaseRedirectionRepository{
+				findByKeyMethodCall:          true,
+				findByKeyMethodCallReturnErr: false,
+			},
+			expectErr: false,
+		}, {
+			test:     "ErrNotFound",
+			location: "http://www.google.com",
+			key:      "short",
+			expectRedirectionRepository: testCaseRedirectionRepository{
+				findByKeyMethodCall:              true,
+				findByKeyMethodCallReturnErr:     true,
+				findByKeyMethodCallReturnErrCode: internal.ErrNotFound,
+			},
+			expectErr:     true,
+			expectErrCode: internal.ErrNotFound,
+		},
+	}
 
-	dispatcher := event.NewDispatcher(ctx)
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run(tc.test, func(t *testing.T) {
+			// Create a new context
+			ctx := context.Background()
 
-	handler := query.NewRedirectionLocationHandler(redirectionRepository, dispatcher)
+			// Create new gomock controller
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	// WHEN
-	query := query.RedirectionLocationQuery{Key: "abcdef"}
-	result, err := handler.Handle(ctx, query)
+			// Create new mock repository
+			redirectionRepository := mock.NewMockRedirectionRepository(ctrl)
 
-	// THEN
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "http:/www.google.com", result.Location)
-}
+			// Expect find by key method call
+			if tc.expectRedirectionRepository.findByKeyMethodCall {
+				// Expect error
+				if tc.expectRedirectionRepository.findByKeyMethodCallReturnErr {
+					err := &internal.Error{Code: tc.expectRedirectionRepository.findByKeyMethodCallReturnErrCode}
+					redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(redirection.Redirection{}, err)
+				} else {
+					redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(redirection.Redirection{
+						Key:      tc.key,
+						Location: tc.location,
+					}, nil)
+				}
+			}
 
-func TestRedirectionLocation_NotFoundErr(t *testing.T) {
-	ctx := context.Background()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+			// Create new event dispatcher
+			dispatcher := event.NewDispatcher(ctx)
 
-	// GIVEN
-	redirectionRepository := mock.NewMockRedirectionRepository(ctrl)
-	redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(redirection.Redirection{}, &internal.Error{Code: internal.ErrNotFound})
+			// Create new RedirectionLocationHandler
+			handler := query.NewRedirectionLocationHandler(redirectionRepository, dispatcher)
 
-	dispatcher := event.NewDispatcher(ctx)
+			// Create new RedirectionLocationQuery with given key
+			query := query.RedirectionLocationQuery{Key: tc.key}
 
-	handler := query.NewRedirectionLocationHandler(redirectionRepository, dispatcher)
+			// Execute query and save result
+			result, err := handler.Handle(ctx, query)
 
-	// WHEN
-	query := query.RedirectionLocationQuery{Key: "abcdef"}
-	_, err := handler.Handle(ctx, query)
-
-	// THEN
-	assert.Equal(t, internal.ErrNotFound, internal.ErrorCode(err))
+			// Check expected error
+			if tc.expectErr {
+				assert.Equal(t, tc.expectErrCode, internal.ErrorCode(err))
+			} else {
+				// CHeck result content
+				assert.Nil(t, err)
+				assert.Equal(t, tc.location, result.Location)
+			}
+		})
+	}
 }
