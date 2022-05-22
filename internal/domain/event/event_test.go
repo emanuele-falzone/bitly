@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEvent_Type(t *testing.T) {
+func TestDomainEvent_Type(t *testing.T) {
 	// Build our needed testcase data struct
 	type testCase struct {
 		test              string
@@ -42,7 +42,7 @@ func TestEvent_Type(t *testing.T) {
 	}
 }
 
-func TestEvent_DateTime(t *testing.T) {
+func TestDomainEvent_DateTime(t *testing.T) {
 	// Build our needed testcase data struct
 	type testCase struct {
 		test     string

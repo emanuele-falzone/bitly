@@ -19,10 +19,11 @@ func TestRandomKeyGenerator_NextKey(t *testing.T) {
 	testCases := []testCase{
 		{
 			location: "http://www.google.com",
-			key:      "dd5w3b",
+			key:      "dd5w3b", // Depends on seed
 		},
 	}
 
+	// Create new key generator with 0 seed
 	generator := service.NewRandomKeyGenerator(0)
 	for _, tc := range testCases {
 		// Run Tests

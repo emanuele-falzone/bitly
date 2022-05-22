@@ -34,8 +34,13 @@ func TestEventLogger(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.test, func(t *testing.T) {
+			// Create new background
 			ctx := context.Background()
+
+			// Create event logger
 			logger := service.NewEventLogger()
+
+			// Consume event
 			logger.Consume(ctx, tc.event)
 		})
 	}
