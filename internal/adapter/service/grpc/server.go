@@ -109,6 +109,20 @@ func (s *Server) GetRedirectionCount(ctx context.Context, in *pb.GetRedirectionC
 	return &pb.GetRedirectionCountResponse{Count: int64(value.Count)}, nil
 }
 
+func (s *Server) GetRedirectionList(ctx context.Context, in *pb.GetRedirectionListRequest) (*pb.GetRedirectionListResponse, error) {
+	// Create a new RedirectionLocationQuery
+	q := query.RedirectionListQuery{}
+
+	// Query execution
+	value, err := s.application.Queries.RedirectionList.Handle(ctx, q)
+	if err != nil {
+		return nil, mapErrorToGrpcError(err)
+	}
+
+	// Return redirection location
+	return &pb.GetRedirectionListResponse{Keys: value.Keys}, nil
+}
+
 // Map internal errors to grpc error
 func mapErrorToGrpcError(err error) error {
 	// Compute error message
