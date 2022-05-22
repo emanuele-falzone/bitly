@@ -2,8 +2,6 @@ syntax = "proto3";
 
 option go_package = "github.com/emanuelefalzone/bitly/internal/adapter/service/grpc/pb";
 
-message Void {};
-
 message CreateRedirectionRequest {
   // The location that has to be shortened
   string location = 1;
@@ -41,6 +39,13 @@ message GetRedirectionCountResponse {
   int64 count = 1;
 }
 
+message GetRedirectionListRequest {}
+
+message GetRedirectionListResponse {
+  // The numer of times the redirection has been read
+  repeated string keys = 1;
+}
+
 // BitlyService is the service for handling url redirections
 service BitlyService {
   // Create a new key for the given location
@@ -49,6 +54,8 @@ service BitlyService {
   rpc DeleteRedirection (DeleteRedirectionRequest) returns (DeleteRedirectionResponse);
   // Get the location associated to a given key
   rpc GetRedirectionLocation (GetRedirectionLocationRequest) returns (GetRedirectionLocationResponse);
-  // Get the numer of times that a given redirection has been read
+  // Get the number of times that a given redirection has been read
   rpc GetRedirectionCount (GetRedirectionCountRequest) returns (GetRedirectionCountResponse);
+  // Get the redirection list
+  rpc GetRedirectionList (GetRedirectionListRequest) returns (GetRedirectionListResponse);
 };
