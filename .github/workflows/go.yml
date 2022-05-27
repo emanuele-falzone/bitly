@@ -19,7 +19,7 @@ jobs:
     - name: Lint
       uses: golangci/golangci-lint-action@v3
       with:
-        version: v3.2.0
+        version: v1.46.2
 
     - name: Set up protoc
       uses: arduino/setup-protoc@v1
