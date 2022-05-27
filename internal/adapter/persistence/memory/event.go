@@ -31,8 +31,7 @@ func (r *InMemoryEventRepository) Create(ctx context.Context, a event.Event) err
 	return nil
 }
 
-func (r *InMemoryEventRepository) FindByRedirection(
-	ctx context.Context,
+func (r *InMemoryEventRepository) FindByRedirection(ctx context.Context,
 	a redirection.Redirection) ([]event.Event, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
