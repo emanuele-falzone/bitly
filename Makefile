@@ -20,11 +20,6 @@ generate-code:
 		-package=mock \
 		github.com/emanuelefalzone/bitly/internal/service KeyGenerator
 
-	# Generate mock event listener
-	mockgen -destination=./test/mock/event_listener.go \
-		-package=mock \
-		github.com/emanuelefalzone/bitly/internal/domain/event Listener
-
 	# Install protobuf and grpc
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
 	go install google.golang.org/protobuf/cmd/protoc-gen-go
@@ -114,4 +109,3 @@ run-e2e-tests:
 	go test ./internal/... -v \
 		-count=1 \
 		--tags=e2e
-
