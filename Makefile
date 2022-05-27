@@ -1,7 +1,7 @@
 generate-code:
 	# Install mockgen
-	go install github.com/golang/mock/mockgen
-
+	go install github.com/golang/mock/mockgen@v1.6.0
+	
 	# Generate mocks for test purposes
 	# Generate mock redirection repository
 	mockgen -destination=./test/mock/redirection_repository.go \
@@ -21,6 +21,7 @@ generate-code:
 		github.com/emanuelefalzone/bitly/internal/service KeyGenerator
 
 	# Install protobuf and grpc
+	go get google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
 	go install google.golang.org/protobuf/cmd/protoc-gen-go
 
@@ -37,6 +38,7 @@ generate-docs:
 	mkdir -p ./docs
 
 	# Install proto documentation generator
+	go get github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc@v1.5.1
 	go install github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc
 
 	# Generate documentation for grpc service
@@ -46,6 +48,8 @@ generate-docs:
 		internal/adapter/service/grpc/pb/bitly_service.proto
 
 	# Install swag
+	go get github.com/swaggo/swag/gen@v1.8.2
+	go get github.com/swaggo/swag/cmd/swag@v1.8.2
 	go install github.com/swaggo/swag/cmd/swag
 
 	# Generate documentation for grpc service
@@ -74,7 +78,7 @@ run-unit-tests:
 
 run-acceptance-tests:
 	# Run acceptance tests with coverage
-	go test ./internal/... -v \
+	go test ./internal/application/application_test.go -v \
 		-count=1 \
 		-coverpkg=$(CVPKG) \
 		-coverprofile acceptance-coverage.out \
@@ -93,7 +97,9 @@ run-integration-tests:
 	# Run integration tests with coverage
 	INTEGRATION_REDIS_CONNECTION_STRING=redis://localhost:6379 \
 	INTEGRATION_MONGO_CONNECTION_STRING=mongodb://root:example@localhost:27017 \
-		go test ./internal/... -v \
+		go test \
+		./internal/adapter/persistence/... \
+		-v \
 		-count=1 \
 		-coverpkg=$(CVPKG) \
 		-coverprofile integration-coverage.out \
@@ -106,6 +112,8 @@ run-e2e-tests:
 	# Run e2e tests
 	E2E_GRPC_SERVER=localhost:6060 \
 	E2E_HTTP_SERVER=http://localhost:7070 \
-	go test ./internal/... -v \
+	go test \
+		./internal/adapter/service/... \
+		-v \
 		-count=1 \
 		--tags=e2e
