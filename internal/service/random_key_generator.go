@@ -17,13 +17,13 @@ type RandomKeyGenerator struct {
 	rand *rand.Rand
 }
 
-func NewRandomKeyGenerator(seed int64) KeyGenerator {
+func NewRandomKeyGenerator(seed int64) *RandomKeyGenerator {
 	rand := rand.New(rand.NewSource(seed))
-	return RandomKeyGenerator{rand: rand}
+	return &RandomKeyGenerator{rand: rand}
 }
 
 // The Next Key method simply ignores the location parameter and create a fixed length random key
-func (s RandomKeyGenerator) NextKey(location string) string {
+func (s *RandomKeyGenerator) NextKey(location string) string {
 	b := make([]byte, length)
 	// extract random chars from alphabet
 	for i := range b {
