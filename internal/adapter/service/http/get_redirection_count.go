@@ -2,7 +2,6 @@ package http
 
 import (
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/application"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -29,16 +28,13 @@ func (s Server) RedirectionCountHandler(c *fiber.Ctx) error {
 		return err
 	}
 
-	// Create a new RedirectionCountQuery
-	q := application.RedirectionCountQuery{Key: request.Key}
-
 	// Query execution
-	value, err := s.application.RedirectionCountHandler.Handle(c.Context(), q)
+	value, err := s.application.GetRedirectionCount(c.Context(), request.Key)
 	if err != nil {
 		return err
 	}
 
 	// Create and return encoded response
-	response := getRedirectionCountRepresentation(request.Key, value.Count)
+	response := getRedirectionCountRepresentation(request.Key, value)
 	return c.JSON(response)
 }

@@ -8,7 +8,6 @@ import (
 
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/application"
-	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/test/mock"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -21,6 +20,11 @@ func TestApplicationCommand_CreateRedirection(t *testing.T) {
 		createMethodCallReturnErr     bool   // True if we expect the method to return an error
 		createMethodCallReturnErrCode string // Expected error code
 	}
+	type testCaseEventRepository struct {
+		createMethodCall              bool   // True if we expect a call to the method
+		createMethodCallReturnErr     bool   // True if we expect the method to return an error
+		createMethodCallReturnErrCode string // Expected error code
+	}
 	type testCaseKeyGenerator struct {
 		nextKeyMethodCall            bool   // True if we expect a call to the method
 		nextKeyMethodCallReturnValue string // Expected value returned by the method
@@ -28,8 +32,8 @@ func TestApplicationCommand_CreateRedirection(t *testing.T) {
 	type testCase struct {
 		test                        string
 		location                    string // Location URL to be shortened
-		key                         string // key associated to the redirection location
 		expectRedirectionRepository testCaseRedirectionRepository
+		expectEventRepository       testCaseEventRepository
 		expectKeyGenerator          testCaseKeyGenerator
 		expectErr                   bool   // True if expecting error after command execution
 		expectErrCode               string // Expected error code
@@ -41,6 +45,10 @@ func TestApplicationCommand_CreateRedirection(t *testing.T) {
 			test:     "Success",
 			location: "http://www.google.com",
 			expectRedirectionRepository: testCaseRedirectionRepository{
+				createMethodCall:          true,
+				createMethodCallReturnErr: false,
+			},
+			expectEventRepository: testCaseEventRepository{
 				createMethodCall:          true,
 				createMethodCallReturnErr: false,
 			},
@@ -112,17 +120,25 @@ func TestApplicationCommand_CreateRedirection(t *testing.T) {
 				keyGenerator.EXPECT().NextKey(gomock.Any()).Return(tc.expectKeyGenerator.nextKeyMethodCallReturnValue)
 			}
 
-			// Create new event dispatcher
-			dispatcher := event.NewDispatcher(ctx)
+			// Create new mock repository
+			eventRepository := mock.NewMockEventRepository(ctrl)
+
+			// Expect create method call
+			if tc.expectEventRepository.createMethodCall {
+				// Expect error
+				if tc.expectEventRepository.createMethodCallReturnErr {
+					err := &internal.Error{Code: tc.expectEventRepository.createMethodCallReturnErrCode}
+					eventRepository.EXPECT().Create(gomock.Any(), gomock.Any()).Return(err)
+				} else {
+					eventRepository.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
+				}
+			}
 
 			// Create new CreateRedirectionHandlerCommand handler
-			handler := application.NewCreateRedirectionHandler(redirectionRepository, keyGenerator, dispatcher)
-
-			// Create new CreateRedirectionCommand with given location
-			cmd := application.CreateRedirectionCommand{Location: tc.location}
+			app := application.New(redirectionRepository, eventRepository, keyGenerator)
 
 			// Execute command and save result
-			result, err := handler.Handle(ctx, cmd)
+			result, err := app.CreateRedirection(ctx, tc.location)
 
 			// Check expected error
 			if tc.expectErr {
@@ -130,7 +146,7 @@ func TestApplicationCommand_CreateRedirection(t *testing.T) {
 			} else {
 				// CHeck result content
 				assert.Nil(t, err)
-				assert.Equal(t, tc.expectKeyGenerator.nextKeyMethodCallReturnValue, result.Key)
+				assert.Equal(t, tc.expectKeyGenerator.nextKeyMethodCallReturnValue, result)
 			}
 		})
 	}

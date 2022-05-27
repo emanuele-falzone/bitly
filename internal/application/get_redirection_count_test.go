@@ -160,14 +160,14 @@ func TestApplicationQuery_RedirectionCount(t *testing.T) {
 				}
 			}
 
-			// Create new RedirectionCountHandler
-			handler := application.NewRedirectionCountHandler(redirectionRepository, eventRepository)
+			// Create new mock key generator
+			keyGenerator := mock.NewMockKeyGenerator(ctrl)
 
-			// Create new RedirectionCountQuery with given key
-			query := application.RedirectionCountQuery{Key: tc.key}
+			// Create new CreateRedirectionHandlerCommand handler
+			app := application.New(redirectionRepository, eventRepository, keyGenerator)
 
 			// Execute query and save result
-			result, err := handler.Handle(ctx, query)
+			result, err := app.GetRedirectionCount(ctx, tc.key)
 
 			// Check expected error
 			if tc.expectErr {
@@ -175,7 +175,7 @@ func TestApplicationQuery_RedirectionCount(t *testing.T) {
 			} else {
 				// CHeck result content
 				assert.Nil(t, err)
-				assert.Equal(t, tc.expectReadEventCount, result.Count)
+				assert.Equal(t, tc.expectReadEventCount, result)
 			}
 		})
 	}

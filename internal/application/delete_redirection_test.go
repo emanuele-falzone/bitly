@@ -8,7 +8,6 @@ import (
 
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/application"
-	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 	"github.com/emanuelefalzone/bitly/test/mock"
 	"github.com/golang/mock/gomock"
@@ -25,11 +24,17 @@ func TestApplicationCommand_DeleteRedirection(t *testing.T) {
 		deleteMethodCallReturnErr        bool   // True if we expect the method to return an error
 		deleteMethodCallReturnErrCode    string // Expected error code
 	}
+	type testCaseEventRepository struct {
+		createMethodCall              bool   // True if we expect a call to the method
+		createMethodCallReturnErr     bool   // True if we expect the method to return an error
+		createMethodCallReturnErrCode string // Expected error code
+	}
 	type testCase struct {
 		test                        string
 		location                    string // Location URL to be shortened
 		key                         string // key associated to the redirection location
 		expectRedirectionRepository testCaseRedirectionRepository
+		expectEventRepository       testCaseEventRepository
 		expectErr                   bool   // True if expecting error after command execution
 		expectErrCode               string // Expected error code
 	}
@@ -45,6 +50,10 @@ func TestApplicationCommand_DeleteRedirection(t *testing.T) {
 				findByKeyMethodCallReturnErr: false,
 				deleteMethodCall:             true,
 				deleteMethodCallReturnErr:    false,
+			},
+			expectEventRepository: testCaseEventRepository{
+				createMethodCall:          true,
+				createMethodCallReturnErr: false,
 			},
 			expectErr: false,
 		}, {
@@ -114,17 +123,28 @@ func TestApplicationCommand_DeleteRedirection(t *testing.T) {
 				}
 			}
 
-			// Create new event dispatcher
-			dispatcher := event.NewDispatcher(ctx)
+			// Create new mock key generator
+			keyGenerator := mock.NewMockKeyGenerator(ctrl)
 
-			// Create new DeleteRedirectionHandler
-			handler := application.NewDeleteRedirectionHandler(redirectionRepository, dispatcher)
+			// Create new mock repository
+			eventRepository := mock.NewMockEventRepository(ctrl)
 
-			// Create new DeleteRedirectionCommand with given key
-			cmd := application.DeleteRedirectionCommand{Key: tc.key}
+			// Expect create method call
+			if tc.expectEventRepository.createMethodCall {
+				// Expect error
+				if tc.expectEventRepository.createMethodCallReturnErr {
+					err := &internal.Error{Code: tc.expectEventRepository.createMethodCallReturnErrCode}
+					eventRepository.EXPECT().Create(gomock.Any(), gomock.Any()).Return(err)
+				} else {
+					eventRepository.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
+				}
+			}
+
+			// Create new CreateRedirectionHandlerCommand handler
+			app := application.New(redirectionRepository, eventRepository, keyGenerator)
 
 			// Execute command and save return value
-			err := handler.Handle(ctx, cmd)
+			err := app.DeleteRedirection(ctx, tc.key)
 
 			// Check expected error
 			if tc.expectErr {

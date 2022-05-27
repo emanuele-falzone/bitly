@@ -52,25 +52,19 @@ func (s *Server) Stop() {
 }
 
 func (s *Server) CreateRedirection(ctx context.Context, in *pb.CreateRedirectionRequest) (*pb.CreateRedirectionResponse, error) {
-	// Create a new CreateRedirectionCommand
-	cmd := application.CreateRedirectionCommand{Location: in.Location}
-
 	// Command execution
-	value, err := s.application.CreateRedirectionHandler.Handle(ctx, cmd)
+	value, err := s.application.CreateRedirection(ctx, in.Location)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
 
 	// Send redirection key
-	return &pb.CreateRedirectionResponse{Key: value.Key}, nil
+	return &pb.CreateRedirectionResponse{Key: value}, nil
 }
 
 func (s *Server) DeleteRedirection(ctx context.Context, in *pb.DeleteRedirectionRequest) (*pb.DeleteRedirectionResponse, error) {
-	// Create a new DeleteRedirectionCommand using the key specified in the request
-	cmd := application.DeleteRedirectionCommand{Key: in.Key}
-
 	// Command execution
-	err := s.application.DeleteRedirectionHandler.Handle(ctx, cmd)
+	err := s.application.DeleteRedirection(ctx, in.Key)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
@@ -80,45 +74,36 @@ func (s *Server) DeleteRedirection(ctx context.Context, in *pb.DeleteRedirection
 }
 
 func (s *Server) GetRedirectionLocation(ctx context.Context, in *pb.GetRedirectionLocationRequest) (*pb.GetRedirectionLocationResponse, error) {
-	// Create a new RedirectionLocationQuery
-	q := application.RedirectionLocationQuery{Key: in.Key}
-
 	// Query execution
-	value, err := s.application.RedirectionLocationHandler.Handle(ctx, q)
+	value, err := s.application.GetRedirectionLocation(ctx, in.Key)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
 
 	// Return redirection location
-	return &pb.GetRedirectionLocationResponse{Location: value.Location}, nil
+	return &pb.GetRedirectionLocationResponse{Location: value}, nil
 }
 
 func (s *Server) GetRedirectionCount(ctx context.Context, in *pb.GetRedirectionCountRequest) (*pb.GetRedirectionCountResponse, error) {
-	// Create a new RedirectionCountQuery
-	q := application.RedirectionCountQuery{Key: in.Key}
-
 	// Query execution
-	value, err := s.application.RedirectionCountHandler.Handle(ctx, q)
+	value, err := s.application.GetRedirectionCount(ctx, in.Key)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
 
 	// Return redirection count
-	return &pb.GetRedirectionCountResponse{Count: int64(value.Count)}, nil
+	return &pb.GetRedirectionCountResponse{Count: int64(value)}, nil
 }
 
 func (s *Server) GetRedirectionList(ctx context.Context, in *pb.GetRedirectionListRequest) (*pb.GetRedirectionListResponse, error) {
-	// Create a new RedirectionLocationQuery
-	q := application.RedirectionListQuery{}
-
 	// Query execution
-	value, err := s.application.RedirectionListHandler.Handle(ctx, q)
+	value, err := s.application.GetRedirectionList(ctx)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
 
 	// Return redirection location
-	return &pb.GetRedirectionListResponse{Keys: value.Keys}, nil
+	return &pb.GetRedirectionListResponse{Keys: value}, nil
 }
 
 // Map internal errors to grpc error

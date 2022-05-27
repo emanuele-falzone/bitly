@@ -2,7 +2,6 @@ package http
 
 import (
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/application"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -30,15 +29,12 @@ func (s Server) RedirectionLocationHandler(c *fiber.Ctx) error {
 		return err
 	}
 
-	// Create a new RedirectionLocationQuery
-	q := application.RedirectionLocationQuery{Key: request.Key}
-
 	// Query execution
-	value, err := s.application.RedirectionLocationHandler.Handle(c.Context(), q)
+	value, err := s.application.GetRedirectionLocation(c.Context(), request.Key)
 	if err != nil {
 		return err
 	}
 
 	// Redirect to location
-	return c.Redirect(value.Location)
+	return c.Redirect(value)
 }

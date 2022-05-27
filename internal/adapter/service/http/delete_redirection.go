@@ -2,7 +2,6 @@ package http
 
 import (
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/application"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -29,11 +28,8 @@ func (s Server) DeleteRedirectionHandler(c *fiber.Ctx) error {
 		return err
 	}
 
-	// Create a new DeleteRedirectionCommand using the key specified in the request
-	cmd := application.DeleteRedirectionCommand{Key: request.Key}
-
 	// Command execution
-	err = s.application.DeleteRedirectionHandler.Handle(c.Context(), cmd)
+	err = s.application.DeleteRedirection(c.Context(), request.Key)
 	if err != nil {
 		return err
 	}

@@ -7,19 +7,15 @@ import (
 )
 
 type Application struct {
-	CreateRedirectionHandler   CreateRedirectionHandler
-	DeleteRedirectionHandler   DeleteRedirectionHandler
-	RedirectionLocationHandler RedirectionLocationHandler
-	RedirectionCountHandler    RedirectionCountHandler
-	RedirectionListHandler     RedirectionListHandler
+	redirectionRepository redirection.Repository
+	eventRepository       event.Repository
+	keyGenerator          service.KeyGenerator
 }
 
-func New(redirections redirection.Repository, events event.Repository, generator service.KeyGenerator, dispatcher *event.Dispatcher) *Application {
+func New(redirectionRepository redirection.Repository, eventRepository event.Repository, keyGenerator service.KeyGenerator) *Application {
 	return &Application{
-		CreateRedirectionHandler:   NewCreateRedirectionHandler(redirections, generator, dispatcher),
-		DeleteRedirectionHandler:   NewDeleteRedirectionHandler(redirections, dispatcher),
-		RedirectionLocationHandler: NewRedirectionLocationHandler(redirections, dispatcher),
-		RedirectionCountHandler:    NewRedirectionCountHandler(redirections, events),
-		RedirectionListHandler:     NewRedirectionListHandler(redirections),
+		redirectionRepository: redirectionRepository,
+		eventRepository:       eventRepository,
+		keyGenerator:          keyGenerator,
 	}
 }

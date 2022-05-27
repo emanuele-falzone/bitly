@@ -2,7 +2,6 @@ package http
 
 import (
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/application"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -33,17 +32,14 @@ func (s Server) CreateRedirectionHandler(c *fiber.Ctx) error {
 		return err
 	}
 
-	// Create a new CreateRedirectionCommand
-	cmd := application.CreateRedirectionCommand{Location: request.Location}
-
 	// Command execution
-	value, err := s.application.CreateRedirectionHandler.Handle(c.Context(), cmd)
+	value, err := s.application.CreateRedirection(c.Context(), request.Location)
 	if err != nil {
 		return err
 	}
 
 	// Create response
-	response := getRedirectionRepresentation(value.Key)
+	response := getRedirectionRepresentation(value)
 
 	// Set location header
 	c.Location(response.Links.Self.Href)

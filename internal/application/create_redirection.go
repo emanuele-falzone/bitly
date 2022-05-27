@@ -2,54 +2,47 @@ package application
 
 import (
 	"context"
+	"log"
 
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
-	"github.com/emanuelefalzone/bitly/internal/service"
 )
 
-type CreateRedirectionCommand struct {
-	Location string
-}
-
-type CreateRedirectionCommandResult struct {
-	Key string
-}
-
-type CreateRedirectionHandler struct {
-	redirections redirection.Repository
-	generator    service.KeyGenerator
-	dispatcher   *event.Dispatcher
-}
-
-func NewCreateRedirectionHandler(redirections redirection.Repository, generator service.KeyGenerator, dispatcher *event.Dispatcher) CreateRedirectionHandler {
-	return CreateRedirectionHandler{redirections: redirections, generator: generator, dispatcher: dispatcher}
-}
-
-func (h CreateRedirectionHandler) Handle(ctx context.Context, cmd CreateRedirectionCommand) (*CreateRedirectionCommandResult, error) {
+func (app *Application) CreateRedirection(ctx context.Context, location string) (string, error) {
 	// Get a new key from the key generator
-	key := h.generator.NextKey(cmd.Location)
+	key := app.keyGenerator.NextKey(location)
 
 	// Create a new redirection given the generated key and specified location
-	val, err := redirection.New(key, cmd.Location)
+	val, err := redirection.New(key, location)
 
 	// If the create operation fails return error
 	if err != nil {
-		return nil, &internal.Error{Op: "CreateRedirectionHandler: Handle", Err: err}
+		return "", &internal.Error{Op: "Application: CreateRedirection", Err: err}
 	}
 
 	// Save the redirection inside the repository
-	err = h.redirections.Create(ctx, val)
+	err = app.redirectionRepository.Create(ctx, val)
 
 	// If the save operation fails return error
 	if err != nil {
-		return nil, &internal.Error{Op: "CreateRedirectionHandler: Handle", Err: err}
+		return "", &internal.Error{Op: "Application: CreateRedirection", Err: err}
 	}
 
-	// Dispatch created event
-	h.dispatcher.Dispatch(ctx, event.Created(val))
+	// Create new event
+	event := event.Created(val)
+
+	// Store created event in repository
+	err = app.eventRepository.Create(ctx, event)
+
+	// If the save operation fails return error
+	if err != nil {
+		return "", &internal.Error{Op: "Application: CreateRedirection", Err: err}
+	}
+
+	// Log event to console
+	log.Printf("Key: %s, Location: %s, Event: %s, DateTime: %s\n", event.Redirection.Key, event.Redirection.Location, event.Type, event.DateTime)
 
 	// Return the key of the newly created redirection
-	return &CreateRedirectionCommandResult{Key: key}, nil
+	return key, nil
 }

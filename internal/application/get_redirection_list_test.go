@@ -89,14 +89,17 @@ func TestApplicationQuery_RedirectionList(t *testing.T) {
 				}
 			}
 
-			// Create new RedirectionListHandler
-			handler := application.NewRedirectionListHandler(redirectionRepository)
+			// Create new mock key generator
+			keyGenerator := mock.NewMockKeyGenerator(ctrl)
 
-			// Create new RedirectionListQuery
-			query := application.RedirectionListQuery{}
+			// Create new mock repository
+			eventRepository := mock.NewMockEventRepository(ctrl)
+
+			// Create new CreateRedirectionHandlerCommand handler
+			app := application.New(redirectionRepository, eventRepository, keyGenerator)
 
 			// Execute query and save result
-			result, err := handler.Handle(ctx, query)
+			result, err := app.GetRedirectionList(ctx)
 
 			// Check expected error
 			if tc.expectErr {
@@ -104,7 +107,7 @@ func TestApplicationQuery_RedirectionList(t *testing.T) {
 			} else {
 				// CHeck result content
 				assert.Nil(t, err)
-				assert.Equal(t, tc.expectCount, len(result.Keys))
+				assert.Equal(t, tc.expectCount, len(result))
 			}
 		})
 	}

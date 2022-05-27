@@ -8,7 +8,6 @@ import (
 
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/application"
-	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 	"github.com/emanuelefalzone/bitly/test/mock"
 	"github.com/golang/mock/gomock"
@@ -22,11 +21,17 @@ func TestApplicationQuery_RedirectionLocation(t *testing.T) {
 		findByKeyMethodCallReturnErr     bool   // True if we expect the method to return an error
 		findByKeyMethodCallReturnErrCode string // Expected error code
 	}
+	type testCaseEventRepository struct {
+		createMethodCall              bool   // True if we expect a call to the method
+		createMethodCallReturnErr     bool   // True if we expect the method to return an error
+		createMethodCallReturnErrCode string // Expected error code
+	}
 	type testCase struct {
 		test                        string
 		location                    string // Location URL to be shortened
 		key                         string // key associated to the redirection location
 		expectRedirectionRepository testCaseRedirectionRepository
+		expectEventRepository       testCaseEventRepository
 		expectErr                   bool   // True if expecting error after query execution
 		expectErrCode               string // Expected error code
 	}
@@ -40,6 +45,10 @@ func TestApplicationQuery_RedirectionLocation(t *testing.T) {
 			expectRedirectionRepository: testCaseRedirectionRepository{
 				findByKeyMethodCall:          true,
 				findByKeyMethodCallReturnErr: false,
+			},
+			expectEventRepository: testCaseEventRepository{
+				createMethodCall:          true,
+				createMethodCallReturnErr: false,
 			},
 			expectErr: false,
 		}, {
@@ -83,17 +92,28 @@ func TestApplicationQuery_RedirectionLocation(t *testing.T) {
 				}
 			}
 
-			// Create new event dispatcher
-			dispatcher := event.NewDispatcher(ctx)
+			// Create new mock key generator
+			keyGenerator := mock.NewMockKeyGenerator(ctrl)
 
-			// Create new RedirectionLocationHandler
-			handler := application.NewRedirectionLocationHandler(redirectionRepository, dispatcher)
+			// Create new mock repository
+			eventRepository := mock.NewMockEventRepository(ctrl)
 
-			// Create new RedirectionLocationQuery with given key
-			query := application.RedirectionLocationQuery{Key: tc.key}
+			// Expect create method call
+			if tc.expectEventRepository.createMethodCall {
+				// Expect error
+				if tc.expectEventRepository.createMethodCallReturnErr {
+					err := &internal.Error{Code: tc.expectEventRepository.createMethodCallReturnErrCode}
+					eventRepository.EXPECT().Create(gomock.Any(), gomock.Any()).Return(err)
+				} else {
+					eventRepository.EXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
+				}
+			}
+
+			// Create new CreateRedirectionHandlerCommand handler
+			app := application.New(redirectionRepository, eventRepository, keyGenerator)
 
 			// Execute query and save result
-			result, err := handler.Handle(ctx, query)
+			result, err := app.GetRedirectionLocation(ctx, tc.key)
 
 			// Check expected error
 			if tc.expectErr {
@@ -101,7 +121,7 @@ func TestApplicationQuery_RedirectionLocation(t *testing.T) {
 			} else {
 				// CHeck result content
 				assert.Nil(t, err)
-				assert.Equal(t, tc.location, result.Location)
+				assert.Equal(t, tc.location, result)
 			}
 		})
 	}
