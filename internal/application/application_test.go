@@ -14,7 +14,6 @@ import (
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
 	"github.com/emanuelefalzone/bitly/internal/application"
-	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/test"
 )
 
@@ -43,15 +42,6 @@ func TestAcceptance_Application(t *testing.T) {
 
 	// Create a new random key generator
 	keyGenerator := service.NewRandomKeyGenerator(time.Now().Unix())
-
-	// Create a new event dispatcher
-	dispatcher := event.NewDispatcher(ctx)
-
-	// Create a new event store
-	eventStore := service.NewEventStore(eventRepository)
-
-	// Register the event store as event listener
-	dispatcher.Register(eventStore)
 
 	// Create a new application
 	application_ := application.New(redirectionRepository, eventRepository, keyGenerator)
