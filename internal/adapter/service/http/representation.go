@@ -8,18 +8,18 @@ This file is an attempt to represent resource using JSON Hypertext Application L
 
 type ResourceLink struct {
 	Href string `json:"href"`
-} //@name Link
+} // @name Link
 
 type RedirectionLinks struct {
 	Self    ResourceLink `json:"self"`
 	Count   ResourceLink `json:"count"`
 	Consume ResourceLink `json:"consume"`
-} //@name RedirectionLinks
+} // @name RedirectionLinks
 
 type RedirectionRepresentation struct {
 	Key   string           `json:"key"`
 	Links RedirectionLinks `json:"_links"`
-} //@name RedirectionRepresentation
+} // @name RedirectionRepresentation
 
 func getRedirectionRepresentation(key string) RedirectionRepresentation {
 	return RedirectionRepresentation{
@@ -40,18 +40,19 @@ func getRedirectionRepresentation(key string) RedirectionRepresentation {
 
 type RedirectionListLinks struct {
 	Self ResourceLink `json:"self"`
-} //@name RedirectionListLinks
+} // @name RedirectionListLinks
 
 type RedirectionListRepresentation struct {
 	Items []RedirectionRepresentation `json:"items"`
 	Links RedirectionListLinks        `json:"_links"`
-} //@name RedirectionListRepresentation
+} // @name RedirectionListRepresentation
 
 func getRedirectionListRepresentation(keys []string) RedirectionListRepresentation {
 	items := []RedirectionRepresentation{}
 	for _, key := range keys {
 		items = append(items, getRedirectionRepresentation(key))
 	}
+
 	return RedirectionListRepresentation{
 		Items: items,
 		Links: RedirectionListLinks{
@@ -65,12 +66,12 @@ func getRedirectionListRepresentation(keys []string) RedirectionListRepresentati
 type RedirectionCountLinks struct {
 	Self   ResourceLink `json:"self"`
 	Parent ResourceLink `json:"parent"`
-} //@name RedirectionCountLinks
+} // @name RedirectionCountLinks
 
 type RedirectionCountRepresentation struct {
 	Count int                   `json:"count"`
 	Links RedirectionCountLinks `json:"_links"`
-} //@name RedirectionCountRepresentation
+} // @name RedirectionCountRepresentation
 
 func getRedirectionCountRepresentation(key string, count int) RedirectionCountRepresentation {
 	return RedirectionCountRepresentation{

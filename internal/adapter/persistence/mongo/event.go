@@ -16,7 +16,7 @@ const (
 	COLLECTION = "events"
 )
 
-type MongoEventRepository struct {
+type EventRepository struct {
 	client mongo.Client
 }
 
@@ -26,7 +26,7 @@ type Event struct {
 	DateTime string `bson:"datetime"`
 }
 
-func NewEventRepository(connectionString string) (*MongoEventRepository, error) {
+func NewEventRepository(connectionString string) (*EventRepository, error) {
 	// Create new mongo client with the given connection string
 	client, err := mongo.NewClient(options.Client().ApplyURI(connectionString))
 	if err != nil {
@@ -39,11 +39,11 @@ func NewEventRepository(connectionString string) (*MongoEventRepository, error) 
 		return nil, err
 	}
 
-	// Return new MongoEventRepository
-	return &MongoEventRepository{client: *client}, nil
+	// Return new EventRepository
+	return &EventRepository{client: *client}, nil
 }
 
-func (r *MongoEventRepository) Create(ctx context.Context, a event.Event) error {
+func (r *EventRepository) Create(ctx context.Context, a event.Event) error {
 	// Select database
 	db := r.client.Database(DB)
 
@@ -60,14 +60,18 @@ func (r *MongoEventRepository) Create(ctx context.Context, a event.Event) error 
 	// Check for error during insert
 	if err != nil {
 		// There was some problem with mongo return error
-		return &internal.Error{Code: internal.ErrInternal, Op: "MongoEventRepository: Create", Err: err}
+		return &internal.Error{
+			Code: internal.ErrInternal,
+			Op:   "EventRepository: Create",
+			Err:  err,
+		}
 	}
 
 	// Return nil to signal that the operation was completed successfully
 	return nil
 }
 
-func (r *MongoEventRepository) FindByRedirection(ctx context.Context, a redirection.Redirection) ([]event.Event, error) {
+func (r *EventRepository) FindByRedirection(ctx context.Context, a redirection.Redirection) ([]event.Event, error) {
 	// Select database
 	db := r.client.Database(DB)
 
@@ -77,24 +81,36 @@ func (r *MongoEventRepository) FindByRedirection(ctx context.Context, a redirect
 	// Filter events by key
 	filterCursor, err := eventCollection.Find(context.TODO(), bson.M{"key": a.Key})
 	if err != nil {
-		return nil, &internal.Error{Code: internal.ErrInternal, Op: "MongoEventRepository: FindByRedirection", Err: err}
+		return nil, &internal.Error{
+			Code: internal.ErrInternal,
+			Op:   "EventRepository: FindByRedirection",
+			Err:  err,
+		}
 	}
 
 	// Materialize event slice
 	var events []Event
 	if err = filterCursor.All(context.TODO(), &events); err != nil {
-		return nil, &internal.Error{Code: internal.ErrInternal, Op: "MongoEventRepository: FindByRedirection", Err: err}
+		return nil, &internal.Error{
+			Code: internal.ErrInternal,
+			Op:   "EventRepository: FindByRedirection",
+			Err:  err,
+		}
 	}
 
 	// Map Event into event.Event
-	var results []event.Event
-	for _, value := range events {
-		results = append(results, event.New(value.DateTime, event.Type(value.Type), a))
+	results := make([]event.Event, len(events))
+
+	for i, value := range events {
+		results[i] = event.New(value.DateTime, event.Type(value.Type), a)
 	}
 
 	// Check result size
 	if len(results) == 0 {
-		return nil, &internal.Error{Code: internal.ErrNotFound, Op: "MongoEventRepository: FindByRedirection"}
+		return nil, &internal.Error{
+			Code: internal.ErrNotFound,
+			Op:   "EventRepository: FindByRedirection",
+		}
 	}
 
 	// Return slice of domain objects

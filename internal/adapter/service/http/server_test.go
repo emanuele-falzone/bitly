@@ -38,7 +38,7 @@ func TestEndToEnd_HttpServer(t *testing.T) {
 	}
 
 	// Create new http driver
-	driver_ := NewHttpDriver(serverAddress)
+	driver := NewHttpDriver(serverAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -48,7 +48,7 @@ func TestEndToEnd_HttpServer(t *testing.T) {
 		Name: "End to end tests using the http driver",
 		ScenarioInitializer: test.Initialize(func() *test.Client {
 			// Create a new client for each scenario (this allows to keep the client simple)
-			return test.NewClient(driver_, ctx)
+			return test.NewClient(ctx, driver)
 		}),
 		Options: &opts,
 	}.Run()
@@ -65,7 +65,7 @@ type HttpDriver struct {
 	endpoint string
 }
 
-func NewHttpDriver(endpoint string) test.Driver {
+func NewHttpDriver(endpoint string) *HttpDriver {
 	// Create client
 	client := &http.Client{CheckRedirect: CheckRedirect}
 

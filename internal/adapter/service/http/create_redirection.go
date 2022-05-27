@@ -7,7 +7,7 @@ import (
 
 type CreateRedirectionRequest struct {
 	Location string `json:"location" validate:"required,url" example:"https://youtu.be/yhC-361QGJw"`
-} //@name Location
+} // @name Location
 
 // CreateRedirectionHandler godoc
 // @Summary      Create a new redirection
@@ -24,16 +24,19 @@ func (s Server) CreateRedirectionHandler(c *fiber.Ctx) error {
 	request := CreateRedirectionRequest{}
 
 	// Parse the http request body into the request
-	c.BodyParser(&request)
+	err := c.BodyParser(&request)
+	if err != nil {
+		return err
+	}
 
 	// Validate the request
-	err := internal.Validate(request)
+	err = internal.Validate(request)
 	if err != nil {
 		return err
 	}
 
 	// Command execution
-	value, err := s.application.CreateRedirection(c.Context(), request.Location)
+	value, err := s.app.CreateRedirection(c.Context(), request.Location)
 	if err != nil {
 		return err
 	}

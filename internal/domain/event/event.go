@@ -10,8 +10,8 @@ type Type string
 
 const (
 	TypeRead   Type = "read"
-	TypeCreate      = "created"
-	TypeDelete      = "deleted"
+	TypeCreate Type = "created"
+	TypeDelete Type = "deleted"
 )
 
 type Event struct {
@@ -20,17 +20,19 @@ type Event struct {
 	Redirection redirection.Redirection
 }
 
-func New(dt string, type_ Type, a redirection.Redirection) Event {
+func New(dt string, eventType Type, a redirection.Redirection) Event {
 	return Event{
 		DateTime:    dt,
-		Type:        type_,
+		Type:        eventType,
 		Redirection: a,
 	}
 }
 
-func Now(type_ Type, a redirection.Redirection) Event {
+func Now(eventType Type, a redirection.Redirection) Event {
+	// COmputer current ISO 8601 datetime string
 	dt := time.Now().UTC().Format(time.RFC3339)
-	return New(dt, type_, a)
+
+	return New(dt, eventType, a)
 }
 
 func Read(a redirection.Redirection) Event {

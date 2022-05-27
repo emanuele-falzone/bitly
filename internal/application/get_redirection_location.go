@@ -14,22 +14,32 @@ func (app *Application) GetRedirectionLocation(ctx context.Context, key string) 
 
 	// If the find operation fails return error
 	if err != nil {
-		return "", &internal.Error{Op: "Application: GetRedirectionLocation", Err: err}
+		return "", &internal.Error{
+			Op:  "Application: GetRedirectionLocation",
+			Err: err,
+		}
 	}
 
 	// Create new event
-	event := event.Read(val)
+	e := event.Read(val)
 
 	// Store created event in repository
-	err = app.eventRepository.Create(ctx, event)
+	err = app.eventRepository.Create(ctx, e)
 
 	// If the save operation fails return error
 	if err != nil {
-		return "", &internal.Error{Op: "Application: CreateRedirection", Err: err}
+		return "", &internal.Error{
+			Op:  "Application: GetRedirectionLocation",
+			Err: err,
+		}
 	}
 
 	// Log event to console
-	log.Printf("Key: %s, Location: %s, Event: %s, DateTime: %s\n", event.Redirection.Key, event.Redirection.Location, event.Type, event.DateTime)
+	log.Printf("Key: %s, Location: %s, Event: %s, DateTime: %s\n",
+		e.Redirection.Key,
+		e.Redirection.Location,
+		e.Type,
+		e.DateTime)
 
 	// Return the location the specified redirection
 	return val.Location, nil

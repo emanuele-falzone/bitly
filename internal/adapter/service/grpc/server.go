@@ -1,7 +1,5 @@
 package grpc
 
-//go:generate protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative ./pb/bitly_service.proto
-
 import (
 	"context"
 	"fmt"
@@ -18,12 +16,12 @@ import (
 
 type Server struct {
 	pb.UnimplementedBitlyServiceServer
-	application *application.Application
-	grpcServer  *grpc.Server
+	app        *application.Application
+	grpcServer *grpc.Server
 }
 
-func NewServer(application *application.Application) *Server {
-	return &Server{application: application}
+func NewServer(app *application.Application) *Server {
+	return &Server{app: app}
 }
 
 func (s *Server) Start(port int) error {
@@ -51,9 +49,10 @@ func (s *Server) Stop() {
 	s.grpcServer.GracefulStop()
 }
 
-func (s *Server) CreateRedirection(ctx context.Context, in *pb.CreateRedirectionRequest) (*pb.CreateRedirectionResponse, error) {
+func (s *Server) CreateRedirection(ctx context.Context,
+	in *pb.CreateRedirectionRequest) (*pb.CreateRedirectionResponse, error) {
 	// Command execution
-	value, err := s.application.CreateRedirection(ctx, in.Location)
+	value, err := s.app.CreateRedirection(ctx, in.Location)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
@@ -62,9 +61,10 @@ func (s *Server) CreateRedirection(ctx context.Context, in *pb.CreateRedirection
 	return &pb.CreateRedirectionResponse{Key: value}, nil
 }
 
-func (s *Server) DeleteRedirection(ctx context.Context, in *pb.DeleteRedirectionRequest) (*pb.DeleteRedirectionResponse, error) {
+func (s *Server) DeleteRedirection(ctx context.Context,
+	in *pb.DeleteRedirectionRequest) (*pb.DeleteRedirectionResponse, error) {
 	// Command execution
-	err := s.application.DeleteRedirection(ctx, in.Key)
+	err := s.app.DeleteRedirection(ctx, in.Key)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
@@ -73,9 +73,10 @@ func (s *Server) DeleteRedirection(ctx context.Context, in *pb.DeleteRedirection
 	return &pb.DeleteRedirectionResponse{}, nil
 }
 
-func (s *Server) GetRedirectionLocation(ctx context.Context, in *pb.GetRedirectionLocationRequest) (*pb.GetRedirectionLocationResponse, error) {
+func (s *Server) GetRedirectionLocation(ctx context.Context,
+	in *pb.GetRedirectionLocationRequest) (*pb.GetRedirectionLocationResponse, error) {
 	// Query execution
-	value, err := s.application.GetRedirectionLocation(ctx, in.Key)
+	value, err := s.app.GetRedirectionLocation(ctx, in.Key)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
@@ -84,9 +85,10 @@ func (s *Server) GetRedirectionLocation(ctx context.Context, in *pb.GetRedirecti
 	return &pb.GetRedirectionLocationResponse{Location: value}, nil
 }
 
-func (s *Server) GetRedirectionCount(ctx context.Context, in *pb.GetRedirectionCountRequest) (*pb.GetRedirectionCountResponse, error) {
+func (s *Server) GetRedirectionCount(ctx context.Context,
+	in *pb.GetRedirectionCountRequest) (*pb.GetRedirectionCountResponse, error) {
 	// Query execution
-	value, err := s.application.GetRedirectionCount(ctx, in.Key)
+	value, err := s.app.GetRedirectionCount(ctx, in.Key)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
@@ -95,9 +97,10 @@ func (s *Server) GetRedirectionCount(ctx context.Context, in *pb.GetRedirectionC
 	return &pb.GetRedirectionCountResponse{Count: int64(value)}, nil
 }
 
-func (s *Server) GetRedirectionList(ctx context.Context, in *pb.GetRedirectionListRequest) (*pb.GetRedirectionListResponse, error) {
+func (s *Server) GetRedirectionList(ctx context.Context,
+	in *pb.GetRedirectionListRequest) (*pb.GetRedirectionListResponse, error) {
 	// Query execution
-	value, err := s.application.GetRedirectionList(ctx)
+	value, err := s.app.GetRedirectionList(ctx)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
@@ -106,7 +109,7 @@ func (s *Server) GetRedirectionList(ctx context.Context, in *pb.GetRedirectionLi
 	return &pb.GetRedirectionListResponse{Keys: value}, nil
 }
 
-// Map internal errors to grpc error
+// Map internal errors to grpc error.
 func mapErrorToGrpcError(err error) error {
 	// Compute error message
 	msg := internal.ErrorMessage(err)

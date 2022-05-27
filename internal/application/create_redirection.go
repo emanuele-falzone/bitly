@@ -18,7 +18,10 @@ func (app *Application) CreateRedirection(ctx context.Context, location string) 
 
 	// If the create operation fails return error
 	if err != nil {
-		return "", &internal.Error{Op: "Application: CreateRedirection", Err: err}
+		return "", &internal.Error{
+			Op:  "Application: CreateRedirection",
+			Err: err,
+		}
 	}
 
 	// Save the redirection inside the repository
@@ -26,22 +29,32 @@ func (app *Application) CreateRedirection(ctx context.Context, location string) 
 
 	// If the save operation fails return error
 	if err != nil {
-		return "", &internal.Error{Op: "Application: CreateRedirection", Err: err}
+		return "", &internal.Error{
+			Op:  "Application: CreateRedirection",
+			Err: err,
+		}
 	}
 
 	// Create new event
-	event := event.Created(val)
+	e := event.Created(val)
 
 	// Store created event in repository
-	err = app.eventRepository.Create(ctx, event)
+	err = app.eventRepository.Create(ctx, e)
 
 	// If the save operation fails return error
 	if err != nil {
-		return "", &internal.Error{Op: "Application: CreateRedirection", Err: err}
+		return "", &internal.Error{
+			Op:  "Application: CreateRedirection",
+			Err: err,
+		}
 	}
 
 	// Log event to console
-	log.Printf("Key: %s, Location: %s, Event: %s, DateTime: %s\n", event.Redirection.Key, event.Redirection.Location, event.Type, event.DateTime)
+	log.Printf("Key: %s, Location: %s, Event: %s, DateTime: %s\n",
+		e.Redirection.Key,
+		e.Redirection.Location,
+		e.Type,
+		e.DateTime)
 
 	// Return the key of the newly created redirection
 	return key, nil

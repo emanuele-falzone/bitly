@@ -13,12 +13,13 @@ import (
 // @Router       /api/redirections [get]
 func (s Server) RedirectionListHandler(c *fiber.Ctx) error {
 	// Query execution
-	value, err := s.application.GetRedirectionList(c.Context())
+	value, err := s.app.GetRedirectionList(c.Context())
 	if err != nil {
 		return err
 	}
 
 	// Create and return encoded response
 	response := getRedirectionListRepresentation(value)
+
 	return c.JSON(response)
 }

@@ -9,14 +9,18 @@ type Redirection struct {
 	Location string `validate:"required,url"`
 }
 
-func New(key string, location string) (Redirection, error) {
+func New(key, location string) (Redirection, error) {
 	value := Redirection{
 		Key:      key,
 		Location: location,
 	}
-	err := internal.Validate(value)
-	if err != nil {
-		return Redirection{}, &internal.Error{Op: "NewRedirection", Err: err}
+
+	if err := internal.Validate(value); err != nil {
+		return Redirection{}, &internal.Error{
+			Op:  "Redirection: New",
+			Err: err,
+		}
 	}
+
 	return value, nil
 }

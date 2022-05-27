@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/emanuelefalzone/bitly/internal"
@@ -25,7 +25,7 @@ var (
 )
 
 func main() {
-	fmt.Println(`
+	log.Println(`
  _     _ _   _       
 | |   (_) | | |      
 | |__  _| |_| |_   _ 
@@ -39,7 +39,7 @@ func main() {
 	Signals = make(chan os.Signal)
 
 	// Subscribe to SIGINT signals
-	signal.Notify(Signals, os.Interrupt, os.Kill)
+	signal.Notify(Signals, syscall.SIGINT, syscall.SIGTERM)
 
 	// Read GRPC_PORT environment variable
 	grpcPort, err := internal.GetEnv("GRPC_PORT")
@@ -60,7 +60,7 @@ func main() {
 	}
 
 	// Cast httpPort to int
-	intHttpPort, err := strconv.Atoi(httpPort)
+	intHTTPPort, err := strconv.Atoi(httpPort)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -78,12 +78,15 @@ func main() {
 		if err != nil {
 			log.Panic(err)
 		}
+
 		log.Println("Using redis repository.")
 	} else {
-		// Otherwise use a memory repository
+		// Log error
 		log.Println(err)
-		log.Println("Using in memory repository.")
+
+		// Otherwise use a memory repository
 		redirectionRepository = memory.NewRedirectionRepository()
+		log.Println("Using in memory repository.")
 	}
 
 	// Create event repository
@@ -99,12 +102,15 @@ func main() {
 		if err != nil {
 			log.Panic(err)
 		}
+
 		log.Println("Using mongo repository.")
 	} else {
-		// Otherwise use a memory repository
+		// Log error
 		log.Println(err)
-		log.Println("Using in memory repository.")
+
+		// Otherwise use a memory repository
 		eventRepository = memory.NewEventRepository()
+		log.Println("Using in memory repository.")
 	}
 
 	// Create a key generator with random seed
@@ -122,25 +128,27 @@ func main() {
 	// Start grpc server on specified port
 	go func() {
 		log.Printf("Starting GRPC server on port %d.\n", intGrpcPort)
+
 		err := grpcServer.Start(intGrpcPort)
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 	}()
 
 	// Start http server on specified port
 	go func() {
-		log.Printf("Starting HTTP server on port %d.\n", intHttpPort)
-		err := httpServer.Start(intHttpPort)
+		log.Printf("Starting HTTP server on port %d.\n", intHTTPPort)
+
+		err := httpServer.Start(intHTTPPort)
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 	}()
 
 	// Wait for SIGINT
 	<-Signals
 
-	fmt.Println()
+	log.Println()
 	log.Println("Shutting down GRPC server.")
 
 	// Gracefully shutdown grpc server

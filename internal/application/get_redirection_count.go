@@ -13,7 +13,10 @@ func (app *Application) GetRedirectionCount(ctx context.Context, key string) (in
 
 	// If the find operation fails return error
 	if err != nil {
-		return 0, &internal.Error{Op: "Application: GetRedirectionCount", Err: err}
+		return 0, &internal.Error{
+			Op:  "Application: GetRedirectionCount",
+			Err: err,
+		}
 	}
 
 	// Find the redirection inside the repository
@@ -21,11 +24,15 @@ func (app *Application) GetRedirectionCount(ctx context.Context, key string) (in
 
 	// If the find operation fails return error
 	if err != nil {
-		return 0, &internal.Error{Op: "Application: GetRedirectionCount", Err: err}
+		return 0, &internal.Error{
+			Op:  "Application: GetRedirectionCount",
+			Err: err,
+		}
 	}
 
 	// Computer the number of read events by iterating the events
 	readEventCount := 0
+
 	for _, e := range events {
 		if e.Type == event.TypeRead {
 			readEventCount++

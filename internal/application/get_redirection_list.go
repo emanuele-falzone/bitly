@@ -12,7 +12,10 @@ func (app *Application) GetRedirectionList(ctx context.Context) ([]string, error
 
 	// If the find operation fails return error
 	if err != nil {
-		return nil, &internal.Error{Op: "RedirectionListHandler: Handle", Err: err}
+		return nil, &internal.Error{
+			Op:  "Application: GetRedirectionList",
+			Err: err,
+		}
 	}
 
 	// Create keys slice

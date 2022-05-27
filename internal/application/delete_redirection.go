@@ -14,7 +14,10 @@ func (app *Application) DeleteRedirection(ctx context.Context, key string) error
 
 	// If the find operation fails return error
 	if err != nil {
-		return &internal.Error{Op: "DeleteRedirectionHandler: Handle", Err: err}
+		return &internal.Error{
+			Op:  "Application: DeleteRedirection",
+			Err: err,
+		}
 	}
 
 	// Save the redirection inside the repository
@@ -22,22 +25,32 @@ func (app *Application) DeleteRedirection(ctx context.Context, key string) error
 
 	// If the delete operation fails return error
 	if err != nil {
-		return &internal.Error{Op: "DeleteRedirectionHandler: Handle", Err: err}
+		return &internal.Error{
+			Op:  "Application: DeleteRedirection",
+			Err: err,
+		}
 	}
 
 	// Create new event
-	event := event.Deleted(val)
+	e := event.Deleted(val)
 
 	// Store created event in repository
-	err = app.eventRepository.Create(ctx, event)
+	err = app.eventRepository.Create(ctx, e)
 
 	// If the save operation fails return error
 	if err != nil {
-		return &internal.Error{Op: "Application: CreateRedirection", Err: err}
+		return &internal.Error{
+			Op:  "Application: DeleteRedirection",
+			Err: err,
+		}
 	}
 
 	// Log event to console
-	log.Printf("Key: %s, Location: %s, Event: %s, DateTime: %s\n", event.Redirection.Key, event.Redirection.Location, event.Type, event.DateTime)
+	log.Printf("Key: %s, Location: %s, Event: %s, DateTime: %s\n",
+		e.Redirection.Key,
+		e.Redirection.Location,
+		e.Type,
+		e.DateTime)
 
 	// Return nil to indicate that the command was successfully executed
 	return nil

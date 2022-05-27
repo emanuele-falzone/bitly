@@ -36,6 +36,7 @@ func ErrorCode(err error) string {
 	} else if ok && e.Err != nil {
 		return ErrorCode(e.Err)
 	}
+
 	return ErrInternal
 }
 
@@ -49,6 +50,7 @@ func ErrorMessage(err error) string {
 	} else if ok && e.Err != nil {
 		return ErrorMessage(e.Err)
 	}
+
 	return "An internal error has occurred. Please contact technical support."
 }
 
@@ -71,5 +73,6 @@ func (e *Error) Error() string {
 		}
 		buf.WriteString(e.Message)
 	}
+
 	return buf.String()
 }

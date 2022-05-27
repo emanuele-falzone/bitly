@@ -27,10 +27,13 @@ func (r *InMemoryEventRepository) Create(ctx context.Context, a event.Event) err
 
 	// Append the events to the event list
 	r.events[a.Redirection.Key] = append(r.events[a.Redirection.Key], a)
+
 	return nil
 }
 
-func (r *InMemoryEventRepository) FindByRedirection(ctx context.Context, a redirection.Redirection) ([]event.Event, error) {
+func (r *InMemoryEventRepository) FindByRedirection(
+	ctx context.Context,
+	a redirection.Redirection) ([]event.Event, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -39,6 +42,10 @@ func (r *InMemoryEventRepository) FindByRedirection(ctx context.Context, a redir
 		// Return the associated events
 		return events, nil
 	}
+
 	// Cannot find the specified redirection, return error
-	return []event.Event{}, &internal.Error{Code: internal.ErrNotFound, Message: fmt.Sprintf("cannot find a redirection with key %s", a.Key)}
+	return []event.Event{}, &internal.Error{
+		Code:    internal.ErrNotFound,
+		Message: fmt.Sprintf("cannot find a redirection with key %s", a.Key),
+	}
 }

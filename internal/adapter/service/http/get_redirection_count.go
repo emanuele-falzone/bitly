@@ -29,12 +29,13 @@ func (s Server) RedirectionCountHandler(c *fiber.Ctx) error {
 	}
 
 	// Query execution
-	value, err := s.application.GetRedirectionCount(c.Context(), request.Key)
+	value, err := s.app.GetRedirectionCount(c.Context(), request.Key)
 	if err != nil {
 		return err
 	}
 
 	// Create and return encoded response
 	response := getRedirectionCountRepresentation(request.Key, value)
+
 	return c.JSON(response)
 }

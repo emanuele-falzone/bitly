@@ -36,7 +36,7 @@ func TestEndToEnd_GrpcServer(t *testing.T) {
 	}
 
 	// Create new grpc driver
-	driver_, err := NewGrpcDriver(serverAddress)
+	driver, err := NewGrpcDriver(serverAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -46,7 +46,7 @@ func TestEndToEnd_GrpcServer(t *testing.T) {
 		Name: "End to end tests using the grpc driver",
 		ScenarioInitializer: test.Initialize(func() *test.Client {
 			// Create a new client for each scenario (this allows to keep the client simple)
-			return test.NewClient(driver_, ctx)
+			return test.NewClient(ctx, driver)
 		}),
 		Options: &opts,
 	}.Run()
@@ -62,7 +62,7 @@ type GrpcDriver struct {
 	client pb.BitlyServiceClient
 }
 
-func NewGrpcDriver(serverAddress string) (test.Driver, error) {
+func NewGrpcDriver(serverAddress string) (*GrpcDriver, error) {
 	// Connect to grpc server
 	conn, err := grpc.Dial(serverAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {

@@ -29,7 +29,7 @@ func (s Server) DeleteRedirectionHandler(c *fiber.Ctx) error {
 	}
 
 	// Command execution
-	err = s.application.DeleteRedirection(c.Context(), request.Key)
+	err = s.app.DeleteRedirection(c.Context(), request.Key)
 	if err != nil {
 		return err
 	}

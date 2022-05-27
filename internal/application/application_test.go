@@ -47,14 +47,14 @@ func TestAcceptance_Application(t *testing.T) {
 	application_ := application.New(redirectionRepository, eventRepository, keyGenerator)
 
 	// Create a new go driver
-	driver_ := NewGoDriver(application_)
+	driver := NewGoDriver(application_)
 
 	// Run godog test suite
 	status := godog.TestSuite{
 		Name: "Acceptance tests using go driver and in memory repository",
 		ScenarioInitializer: test.Initialize(func() *test.Client {
 			// Create a new client for each scenario (this allows to keep the client simple)
-			return test.NewClient(driver_, ctx)
+			return test.NewClient(ctx, driver)
 		}),
 		Options: &opts,
 	}.Run()
@@ -71,7 +71,7 @@ type GoDriver struct {
 	application *application.Application
 }
 
-func NewGoDriver(application *application.Application) test.Driver {
+func NewGoDriver(application *application.Application) *GoDriver {
 	return &GoDriver{application: application}
 }
 

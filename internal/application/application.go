@@ -12,7 +12,9 @@ type Application struct {
 	keyGenerator          service.KeyGenerator
 }
 
-func New(redirectionRepository redirection.Repository, eventRepository event.Repository, keyGenerator service.KeyGenerator) *Application {
+func New(redirectionRepository redirection.Repository,
+	eventRepository event.Repository,
+	keyGenerator service.KeyGenerator) *Application {
 	return &Application{
 		redirectionRepository: redirectionRepository,
 		eventRepository:       eventRepository,
