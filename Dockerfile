@@ -16,7 +16,6 @@ RUN go mod download
 # Copy the project files
 COPY cmd cmd
 COPY internal internal
-COPY tools tools
 COPY Makefile ./
 COPY LICENSE ./
 COPY README.md ./
