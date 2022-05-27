@@ -11,18 +11,17 @@ import (
 )
 
 type InMemoryRedirectionRepository struct {
-	mu           *sync.Mutex
+	mu           sync.Mutex
 	redirections map[string]redirection.Redirection
 }
 
-func NewRedirectionRepository() redirection.Repository {
+func NewRedirectionRepository() *InMemoryRedirectionRepository {
 	return &InMemoryRedirectionRepository{
-		mu:           &sync.Mutex{},
 		redirections: make(map[string]redirection.Redirection),
 	}
 }
 
-func (r InMemoryRedirectionRepository) Create(ctx context.Context, a redirection.Redirection) error {
+func (r *InMemoryRedirectionRepository) Create(ctx context.Context, a redirection.Redirection) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -36,7 +35,7 @@ func (r InMemoryRedirectionRepository) Create(ctx context.Context, a redirection
 	return nil
 }
 
-func (r InMemoryRedirectionRepository) Delete(ctx context.Context, a redirection.Redirection) error {
+func (r *InMemoryRedirectionRepository) Delete(ctx context.Context, a redirection.Redirection) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -50,7 +49,7 @@ func (r InMemoryRedirectionRepository) Delete(ctx context.Context, a redirection
 	return nil
 }
 
-func (r InMemoryRedirectionRepository) FindByKey(ctx context.Context, key string) (redirection.Redirection, error) {
+func (r *InMemoryRedirectionRepository) FindByKey(ctx context.Context, key string) (redirection.Redirection, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -62,7 +61,7 @@ func (r InMemoryRedirectionRepository) FindByKey(ctx context.Context, key string
 	return redirection.Redirection{}, &internal.Error{Code: internal.ErrNotFound, Message: fmt.Sprintf("cannot find a redirection with key %s", key)}
 }
 
-func (r InMemoryRedirectionRepository) FindAll(ctx context.Context) ([]redirection.Redirection, error) {
+func (r *InMemoryRedirectionRepository) FindAll(ctx context.Context) ([]redirection.Redirection, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

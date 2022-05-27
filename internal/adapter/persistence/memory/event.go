@@ -11,18 +11,17 @@ import (
 )
 
 type InMemoryEventRepository struct {
-	mu     *sync.Mutex
+	mu     sync.Mutex
 	events map[string][]event.Event
 }
 
-func NewEventRepository() event.Repository {
+func NewEventRepository() *InMemoryEventRepository {
 	return &InMemoryEventRepository{
-		mu:     &sync.Mutex{},
 		events: make(map[string][]event.Event),
 	}
 }
 
-func (r InMemoryEventRepository) Create(ctx context.Context, a event.Event) error {
+func (r *InMemoryEventRepository) Create(ctx context.Context, a event.Event) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -31,7 +30,7 @@ func (r InMemoryEventRepository) Create(ctx context.Context, a event.Event) erro
 	return nil
 }
 
-func (r InMemoryEventRepository) FindByRedirection(ctx context.Context, a redirection.Redirection) ([]event.Event, error) {
+func (r *InMemoryEventRepository) FindByRedirection(ctx context.Context, a redirection.Redirection) ([]event.Event, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
