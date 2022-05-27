@@ -1,4 +1,4 @@
-//go:build acceptance
+//--go:build acceptance
 
 package application_test
 
@@ -9,8 +9,6 @@ import (
 	"time"
 
 	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/memory"
-	"github.com/emanuelefalzone/bitly/internal/application/command"
-	"github.com/emanuelefalzone/bitly/internal/application/query"
 	"github.com/emanuelefalzone/bitly/internal/service"
 
 	"github.com/cucumber/godog"
@@ -89,10 +87,10 @@ func NewGoDriver(application *application.Application) test.Driver {
 
 func (d *GoDriver) CreateRedirection(ctx context.Context, location string) (string, error) {
 	// Create a new CreateRedirectionCommand
-	cmd := command.CreateRedirectionCommand{Location: location}
+	cmd := application.CreateRedirectionCommand{Location: location}
 
 	// Command execution
-	value, err := d.application.Commands.CreateRedirection.Handle(ctx, cmd)
+	value, err := d.application.CreateRedirectionHandler.Handle(ctx, cmd)
 	if err != nil {
 		return "", err
 	}
@@ -102,10 +100,10 @@ func (d *GoDriver) CreateRedirection(ctx context.Context, location string) (stri
 }
 func (d *GoDriver) DeleteRedirection(ctx context.Context, key string) error {
 	// Create a new DeleteRedirectionCommand using the key specified in the request
-	cmd := command.DeleteRedirectionCommand{Key: key}
+	cmd := application.DeleteRedirectionCommand{Key: key}
 
 	// Command execution
-	err := d.application.Commands.DeleteRedirection.Handle(ctx, cmd)
+	err := d.application.DeleteRedirectionHandler.Handle(ctx, cmd)
 
 	// Return operation error
 	return err
@@ -114,10 +112,10 @@ func (d *GoDriver) DeleteRedirection(ctx context.Context, key string) error {
 
 func (d *GoDriver) GetRedirectionLocation(ctx context.Context, key string) (string, error) {
 	// Create a new RedirectionLocationQuery
-	q := query.RedirectionLocationQuery{Key: key}
+	q := application.RedirectionLocationQuery{Key: key}
 
 	// Query execution
-	value, err := d.application.Queries.RedirectionLocation.Handle(ctx, q)
+	value, err := d.application.RedirectionLocationHandler.Handle(ctx, q)
 	if err != nil {
 		return "", err
 	}
@@ -128,10 +126,10 @@ func (d *GoDriver) GetRedirectionLocation(ctx context.Context, key string) (stri
 
 func (d *GoDriver) GetRedirectionCount(ctx context.Context, key string) (int, error) {
 	// Create a new RedirectionCountQuery
-	q := query.RedirectionCountQuery{Key: key}
+	q := application.RedirectionCountQuery{Key: key}
 
 	// Query execution
-	value, err := d.application.Queries.RedirectionCount.Handle(ctx, q)
+	value, err := d.application.RedirectionCountHandler.Handle(ctx, q)
 	if err != nil {
 		return 0, err
 	}
@@ -142,10 +140,10 @@ func (d *GoDriver) GetRedirectionCount(ctx context.Context, key string) (int, er
 
 func (d *GoDriver) GetRedirectionList(ctx context.Context) ([]string, error) {
 	// Create a new RedirectionListQuery
-	q := query.RedirectionListQuery{}
+	q := application.RedirectionListQuery{}
 
 	// Query execution
-	value, err := d.application.Queries.RedirectionList.Handle(ctx, q)
+	value, err := d.application.RedirectionListHandler.Handle(ctx, q)
 	if err != nil {
 		return nil, err
 	}

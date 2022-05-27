@@ -1,13 +1,13 @@
 //go:build unit
 
-package command_test
+package application_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/application/command"
+	"github.com/emanuelefalzone/bitly/internal/application"
 	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/test/mock"
 	"github.com/golang/mock/gomock"
@@ -116,10 +116,10 @@ func TestApplicationCommand_CreateRedirection(t *testing.T) {
 			dispatcher := event.NewDispatcher(ctx)
 
 			// Create new CreateRedirectionHandlerCommand handler
-			handler := command.NewCreateRedirectionHandler(redirectionRepository, keyGenerator, dispatcher)
+			handler := application.NewCreateRedirectionHandler(redirectionRepository, keyGenerator, dispatcher)
 
 			// Create new CreateRedirectionCommand with given location
-			cmd := command.CreateRedirectionCommand{Location: tc.location}
+			cmd := application.CreateRedirectionCommand{Location: tc.location}
 
 			// Execute command and save result
 			result, err := handler.Handle(ctx, cmd)

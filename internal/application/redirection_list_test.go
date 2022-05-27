@@ -1,13 +1,13 @@
 //go:build unit
 
-package query_test
+package application_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/application/query"
+	"github.com/emanuelefalzone/bitly/internal/application"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 	"github.com/emanuelefalzone/bitly/test/mock"
 	"github.com/golang/mock/gomock"
@@ -90,10 +90,10 @@ func TestApplicationQuery_RedirectionList(t *testing.T) {
 			}
 
 			// Create new RedirectionListHandler
-			handler := query.NewRedirectionListHandler(redirectionRepository)
+			handler := application.NewRedirectionListHandler(redirectionRepository)
 
 			// Create new RedirectionListQuery
-			query := query.RedirectionListQuery{}
+			query := application.RedirectionListQuery{}
 
 			// Execute query and save result
 			result, err := handler.Handle(ctx, query)

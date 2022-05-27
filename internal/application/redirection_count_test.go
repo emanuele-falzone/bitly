@@ -1,13 +1,13 @@
 //go:build unit
 
-package query_test
+package application_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/application/query"
+	"github.com/emanuelefalzone/bitly/internal/application"
 	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 	"github.com/emanuelefalzone/bitly/test/mock"
@@ -161,10 +161,10 @@ func TestApplicationQuery_RedirectionCount(t *testing.T) {
 			}
 
 			// Create new RedirectionCountHandler
-			handler := query.NewRedirectionCountHandler(redirectionRepository, eventRepository)
+			handler := application.NewRedirectionCountHandler(redirectionRepository, eventRepository)
 
 			// Create new RedirectionCountQuery with given key
-			query := query.RedirectionCountQuery{Key: tc.key}
+			query := application.RedirectionCountQuery{Key: tc.key}
 
 			// Execute query and save result
 			result, err := handler.Handle(ctx, query)

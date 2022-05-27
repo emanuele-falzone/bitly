@@ -2,7 +2,7 @@ package http
 
 import (
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/application/query"
+	"github.com/emanuelefalzone/bitly/internal/application"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -30,10 +30,10 @@ func (s Server) RedirectionCountHandler(c *fiber.Ctx) error {
 	}
 
 	// Create a new RedirectionCountQuery
-	q := query.RedirectionCountQuery{Key: request.Key}
+	q := application.RedirectionCountQuery{Key: request.Key}
 
 	// Query execution
-	value, err := s.application.Queries.RedirectionCount.Handle(c.Context(), q)
+	value, err := s.application.RedirectionCountHandler.Handle(c.Context(), q)
 	if err != nil {
 		return err
 	}

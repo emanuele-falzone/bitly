@@ -10,8 +10,6 @@ import (
 	"github.com/emanuelefalzone/bitly/internal"
 	"github.com/emanuelefalzone/bitly/internal/adapter/service/grpc/pb"
 	"github.com/emanuelefalzone/bitly/internal/application"
-	"github.com/emanuelefalzone/bitly/internal/application/command"
-	"github.com/emanuelefalzone/bitly/internal/application/query"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
@@ -55,10 +53,10 @@ func (s *Server) Stop() {
 
 func (s *Server) CreateRedirection(ctx context.Context, in *pb.CreateRedirectionRequest) (*pb.CreateRedirectionResponse, error) {
 	// Create a new CreateRedirectionCommand
-	cmd := command.CreateRedirectionCommand{Location: in.Location}
+	cmd := application.CreateRedirectionCommand{Location: in.Location}
 
 	// Command execution
-	value, err := s.application.Commands.CreateRedirection.Handle(ctx, cmd)
+	value, err := s.application.CreateRedirectionHandler.Handle(ctx, cmd)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
@@ -69,10 +67,10 @@ func (s *Server) CreateRedirection(ctx context.Context, in *pb.CreateRedirection
 
 func (s *Server) DeleteRedirection(ctx context.Context, in *pb.DeleteRedirectionRequest) (*pb.DeleteRedirectionResponse, error) {
 	// Create a new DeleteRedirectionCommand using the key specified in the request
-	cmd := command.DeleteRedirectionCommand{Key: in.Key}
+	cmd := application.DeleteRedirectionCommand{Key: in.Key}
 
 	// Command execution
-	err := s.application.Commands.DeleteRedirection.Handle(ctx, cmd)
+	err := s.application.DeleteRedirectionHandler.Handle(ctx, cmd)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
@@ -83,10 +81,10 @@ func (s *Server) DeleteRedirection(ctx context.Context, in *pb.DeleteRedirection
 
 func (s *Server) GetRedirectionLocation(ctx context.Context, in *pb.GetRedirectionLocationRequest) (*pb.GetRedirectionLocationResponse, error) {
 	// Create a new RedirectionLocationQuery
-	q := query.RedirectionLocationQuery{Key: in.Key}
+	q := application.RedirectionLocationQuery{Key: in.Key}
 
 	// Query execution
-	value, err := s.application.Queries.RedirectionLocation.Handle(ctx, q)
+	value, err := s.application.RedirectionLocationHandler.Handle(ctx, q)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
@@ -97,10 +95,10 @@ func (s *Server) GetRedirectionLocation(ctx context.Context, in *pb.GetRedirecti
 
 func (s *Server) GetRedirectionCount(ctx context.Context, in *pb.GetRedirectionCountRequest) (*pb.GetRedirectionCountResponse, error) {
 	// Create a new RedirectionCountQuery
-	q := query.RedirectionCountQuery{Key: in.Key}
+	q := application.RedirectionCountQuery{Key: in.Key}
 
 	// Query execution
-	value, err := s.application.Queries.RedirectionCount.Handle(ctx, q)
+	value, err := s.application.RedirectionCountHandler.Handle(ctx, q)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}
@@ -111,10 +109,10 @@ func (s *Server) GetRedirectionCount(ctx context.Context, in *pb.GetRedirectionC
 
 func (s *Server) GetRedirectionList(ctx context.Context, in *pb.GetRedirectionListRequest) (*pb.GetRedirectionListResponse, error) {
 	// Create a new RedirectionLocationQuery
-	q := query.RedirectionListQuery{}
+	q := application.RedirectionListQuery{}
 
 	// Query execution
-	value, err := s.application.Queries.RedirectionList.Handle(ctx, q)
+	value, err := s.application.RedirectionListHandler.Handle(ctx, q)
 	if err != nil {
 		return nil, mapErrorToGrpcError(err)
 	}

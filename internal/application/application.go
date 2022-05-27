@@ -1,39 +1,25 @@
 package application
 
 import (
-	"github.com/emanuelefalzone/bitly/internal/application/command"
-	"github.com/emanuelefalzone/bitly/internal/application/query"
 	"github.com/emanuelefalzone/bitly/internal/domain/event"
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 	"github.com/emanuelefalzone/bitly/internal/service"
 )
 
 type Application struct {
-	Commands Commands
-	Queries  Queries
-}
-
-type Commands struct {
-	CreateRedirection command.CreateRedirectionHandler
-	DeleteRedirection command.DeleteRedirectionHandler
-}
-
-type Queries struct {
-	RedirectionLocation query.RedirectionLocationHandler
-	RedirectionCount    query.RedirectionCountHandler
-	RedirectionList     query.RedirectionListHandler
+	CreateRedirectionHandler   CreateRedirectionHandler
+	DeleteRedirectionHandler   DeleteRedirectionHandler
+	RedirectionLocationHandler RedirectionLocationHandler
+	RedirectionCountHandler    RedirectionCountHandler
+	RedirectionListHandler     RedirectionListHandler
 }
 
 func New(redirections redirection.Repository, events event.Repository, generator service.KeyGenerator, dispatcher *event.Dispatcher) *Application {
 	return &Application{
-		Commands: Commands{
-			CreateRedirection: command.NewCreateRedirectionHandler(redirections, generator, dispatcher),
-			DeleteRedirection: command.NewDeleteRedirectionHandler(redirections, dispatcher),
-		},
-		Queries: Queries{
-			RedirectionLocation: query.NewRedirectionLocationHandler(redirections, dispatcher),
-			RedirectionCount:    query.NewRedirectionCountHandler(redirections, events),
-			RedirectionList:     query.NewRedirectionListHandler(redirections),
-		},
+		CreateRedirectionHandler:   NewCreateRedirectionHandler(redirections, generator, dispatcher),
+		DeleteRedirectionHandler:   NewDeleteRedirectionHandler(redirections, dispatcher),
+		RedirectionLocationHandler: NewRedirectionLocationHandler(redirections, dispatcher),
+		RedirectionCountHandler:    NewRedirectionCountHandler(redirections, events),
+		RedirectionListHandler:     NewRedirectionListHandler(redirections),
 	}
 }
