@@ -12,15 +12,15 @@ import (
 )
 
 const (
-	DB         = "bitly"
-	COLLECTION = "events"
+	db         = "bitly"
+	collection = "events"
 )
 
 type EventRepository struct {
 	client mongo.Client
 }
 
-type Event struct {
+type mongoEvent struct {
 	Key      string `bson:"key"`
 	Type     string `bson:"type"`
 	DateTime string `bson:"datetime"`
@@ -45,13 +45,13 @@ func NewEventRepository(connectionString string) (*EventRepository, error) {
 
 func (r *EventRepository) Create(ctx context.Context, a event.Event) error {
 	// Select database
-	db := r.client.Database(DB)
+	db := r.client.Database(db)
 
 	// Select collection
-	eventCollection := db.Collection(COLLECTION)
+	eventCollection := db.Collection(collection)
 
 	// Insert event into collection
-	_, err := eventCollection.InsertOne(context.Background(), Event{
+	_, err := eventCollection.InsertOne(context.Background(), mongoEvent{
 		Key:      a.Redirection.Key,
 		Type:     string(a.Type),
 		DateTime: a.DateTime,
@@ -73,10 +73,10 @@ func (r *EventRepository) Create(ctx context.Context, a event.Event) error {
 
 func (r *EventRepository) FindByRedirection(ctx context.Context, a redirection.Redirection) ([]event.Event, error) {
 	// Select database
-	db := r.client.Database(DB)
+	db := r.client.Database(db)
 
 	// Select collection
-	eventCollection := db.Collection(COLLECTION)
+	eventCollection := db.Collection(collection)
 
 	// Filter events by key
 	filterCursor, err := eventCollection.Find(context.TODO(), bson.M{"key": a.Key})
@@ -89,7 +89,7 @@ func (r *EventRepository) FindByRedirection(ctx context.Context, a redirection.R
 	}
 
 	// Materialize event slice
-	var events []Event
+	var events []mongoEvent
 	if err = filterCursor.All(context.TODO(), &events); err != nil {
 		return nil, &internal.Error{
 			Code: internal.ErrInternal,

@@ -12,6 +12,7 @@ import (
 	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 	"github.com/stretchr/testify/assert"
 
+	"go.mongodb.org/mongo-driver/bson"
 	_mongo "go.mongodb.org/mongo-driver/mongo"
 	_mongo_options "go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -137,13 +138,21 @@ func newMongoRepository(ctx context.Context) (event.Repository, error) {
 		return nil, err
 	}
 
-	// Select database
-	db := client.Database(mongo.DB)
-
-	// Drop db
-	err = db.Drop(context.Background())
+	// Drop all databases
+	list, err := client.ListDatabases(ctx, bson.D{{}})
 	if err != nil {
 		return nil, err
+	}
+	for _, spec := range list.Databases {
+		// Drop db
+		if spec.Name != "admin" &&
+			spec.Name != "local" &&
+			spec.Name != "config" {
+			err = client.Database(spec.Name).Drop(ctx)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return mongo.NewEventRepository(connectionString)
