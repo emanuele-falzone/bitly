@@ -12,7 +12,7 @@ type RedisRedirectionRepository struct {
 	client *redis.Client
 }
 
-func NewRedirectionRepository(connectionString string) (redirection.Repository, error) {
+func NewRedirectionRepository(connectionString string) (*RedisRedirectionRepository, error) {
 	// Parse connection string and check for errors
 	opt, err := redis.ParseURL(connectionString)
 	if err != nil {
@@ -26,7 +26,7 @@ func NewRedirectionRepository(connectionString string) (redirection.Repository, 
 	return &RedisRedirectionRepository{client: client}, nil
 }
 
-func (r RedisRedirectionRepository) Create(ctx context.Context, a redirection.Redirection) error {
+func (r *RedisRedirectionRepository) Create(ctx context.Context, a redirection.Redirection) error {
 	// Save the redirection in Redis
 	ok, err := r.client.SetNX(ctx, a.Key, a.Location, 0).Result()
 	if err != nil {
@@ -42,7 +42,7 @@ func (r RedisRedirectionRepository) Create(ctx context.Context, a redirection.Re
 	return nil
 }
 
-func (r RedisRedirectionRepository) Delete(ctx context.Context, a redirection.Redirection) error {
+func (r *RedisRedirectionRepository) Delete(ctx context.Context, a redirection.Redirection) error {
 	// Delete the redirection from Redis
 	_, err := r.client.GetDel(ctx, a.Key).Result()
 	if err == redis.Nil {
@@ -58,7 +58,7 @@ func (r RedisRedirectionRepository) Delete(ctx context.Context, a redirection.Re
 	return nil
 }
 
-func (r RedisRedirectionRepository) FindByKey(ctx context.Context, key string) (redirection.Redirection, error) {
+func (r *RedisRedirectionRepository) FindByKey(ctx context.Context, key string) (redirection.Redirection, error) {
 	// Get the location associated with the key
 	location, err := r.client.Get(ctx, key).Result()
 	if err == redis.Nil {
@@ -74,7 +74,7 @@ func (r RedisRedirectionRepository) FindByKey(ctx context.Context, key string) (
 	return redirection.New(key, location)
 }
 
-func (r RedisRedirectionRepository) FindAll(ctx context.Context) ([]redirection.Redirection, error) {
+func (r *RedisRedirectionRepository) FindAll(ctx context.Context) ([]redirection.Redirection, error) {
 	// Get all the keys from redis
 	keys, err := r.client.Keys(ctx, "*").Result()
 	if err != nil {

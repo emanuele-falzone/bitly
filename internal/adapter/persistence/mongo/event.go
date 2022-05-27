@@ -26,7 +26,7 @@ type Event struct {
 	DateTime string `bson:"datetime"`
 }
 
-func NewEventRepository(connectionString string) (event.Repository, error) {
+func NewEventRepository(connectionString string) (*MongoEventRepository, error) {
 	// Create new mongo client with the given connection string
 	client, err := mongo.NewClient(options.Client().ApplyURI(connectionString))
 	if err != nil {
