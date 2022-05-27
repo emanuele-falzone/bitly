@@ -6,81 +6,81 @@ import "fmt"
 This file is an attempt to represent resource using JSON Hypertext Application Language
 */
 
-type ResourceLink struct {
+type resourceLink struct {
 	Href string `json:"href"`
 } // @name Link
 
-type RedirectionLinks struct {
-	Self    ResourceLink `json:"self"`
-	Count   ResourceLink `json:"count"`
-	Consume ResourceLink `json:"consume"`
+type redirectionLinks struct {
+	Self    resourceLink `json:"self"`
+	Count   resourceLink `json:"count"`
+	Consume resourceLink `json:"consume"`
 } // @name RedirectionLinks
 
-type RedirectionRepresentation struct {
+type redirectionRepresentation struct {
 	Key   string           `json:"key"`
-	Links RedirectionLinks `json:"_links"`
+	Links redirectionLinks `json:"_links"`
 } // @name RedirectionRepresentation
 
-func getRedirectionRepresentation(key string) RedirectionRepresentation {
-	return RedirectionRepresentation{
+func getRedirectionRepresentation(key string) redirectionRepresentation {
+	return redirectionRepresentation{
 		Key: key,
-		Links: RedirectionLinks{
-			Self: ResourceLink{
+		Links: redirectionLinks{
+			Self: resourceLink{
 				Href: fmt.Sprintf("/api/redirection/%s", key),
 			},
-			Count: ResourceLink{
+			Count: resourceLink{
 				Href: fmt.Sprintf("/api/redirection/%s/count", key),
 			},
-			Consume: ResourceLink{
+			Consume: resourceLink{
 				Href: fmt.Sprintf("/%s", key),
 			},
 		},
 	}
 }
 
-type RedirectionListLinks struct {
-	Self ResourceLink `json:"self"`
+type redirectionListLinks struct {
+	Self resourceLink `json:"self"`
 } // @name RedirectionListLinks
 
-type RedirectionListRepresentation struct {
-	Items []RedirectionRepresentation `json:"items"`
-	Links RedirectionListLinks        `json:"_links"`
+type redirectionListRepresentation struct {
+	Items []redirectionRepresentation `json:"items"`
+	Links redirectionListLinks        `json:"_links"`
 } // @name RedirectionListRepresentation
 
-func getRedirectionListRepresentation(keys []string) RedirectionListRepresentation {
-	items := []RedirectionRepresentation{}
+func getRedirectionListRepresentation(keys []string) redirectionListRepresentation {
+	items := []redirectionRepresentation{}
 	for _, key := range keys {
 		items = append(items, getRedirectionRepresentation(key))
 	}
 
-	return RedirectionListRepresentation{
+	return redirectionListRepresentation{
 		Items: items,
-		Links: RedirectionListLinks{
-			Self: ResourceLink{
+		Links: redirectionListLinks{
+			Self: resourceLink{
 				Href: "/api/redirections",
 			},
 		},
 	}
 }
 
-type RedirectionCountLinks struct {
-	Self   ResourceLink `json:"self"`
-	Parent ResourceLink `json:"parent"`
+type redirectionCountLinks struct {
+	Self   resourceLink `json:"self"`
+	Parent resourceLink `json:"parent"`
 } // @name RedirectionCountLinks
 
-type RedirectionCountRepresentation struct {
+type redirectionCountRepresentation struct {
 	Count int                   `json:"count"`
-	Links RedirectionCountLinks `json:"_links"`
+	Links redirectionCountLinks `json:"_links"`
 } // @name RedirectionCountRepresentation
 
-func getRedirectionCountRepresentation(key string, count int) RedirectionCountRepresentation {
-	return RedirectionCountRepresentation{
+func getRedirectionCountRepresentation(key string, count int) redirectionCountRepresentation {
+	return redirectionCountRepresentation{
 		Count: count,
-		Links: RedirectionCountLinks{
-			Self: ResourceLink{
+		Links: redirectionCountLinks{
+			Self: resourceLink{
 				Href: fmt.Sprintf("/api/redirection/%s/count", key),
 			},
-			Parent: ResourceLink{
+			Parent: resourceLink{
 				Href: fmt.Sprintf("/api/redirection/%s", key),
 			},
 		},

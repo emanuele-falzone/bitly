@@ -5,23 +5,22 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type CreateRedirectionRequest struct {
+type createRedirectionRequest struct {
 	Location string `json:"location" validate:"required,url" example:"https://youtu.be/yhC-361QGJw"`
 } // @name Location
 
-// CreateRedirectionHandler godoc
 // @Summary      Create a new redirection
 // @Accept       json
 // @Produce      json
-// @Param        location body      CreateRedirectionRequest  true  "Location"
-// @Success      202	  {object}  RedirectionRepresentation
+// @Param        location body      createRedirectionRequest  true  "Location"
+// @Success      202	  {object}  redirectionRepresentation
 // @Header       202      {string}  Location  "/key"
-// @Failure      400      {object}  ErrorMessage
-// @Failure      500      {object}  ErrorMessage
+// @Failure      400      {object}  errorMessage
+// @Failure      500      {object}  errorMessage
 // @Router       /api/redirection [post]
-func (s Server) CreateRedirectionHandler(c *fiber.Ctx) error {
-	// Create a new CreateRedirectionRequest
-	request := CreateRedirectionRequest{}
+func (s *Server) createRedirectionHandler(c *fiber.Ctx) error {
+	// Create a new createRedirectionRequest
+	request := createRedirectionRequest{}
 
 	// Parse the http request body into the request
 	err := c.BodyParser(&request)

@@ -4,14 +4,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// RedirectionListHandler godoc
 // @Summary      Get the redirection list
 // @Accept       json
 // @Produce      json
-// @Success      200 {object}  	   RedirectionListRepresentation
-// @Failure      500      {object}  ErrorMessage
+// @Success      200 	{object}  	redirectionListRepresentation
+// @Failure      500    {object}  	errorMessage
 // @Router       /api/redirections [get]
-func (s Server) RedirectionListHandler(c *fiber.Ctx) error {
+func (s *Server) redirectionListHandler(c *fiber.Ctx) error {
 	// Query execution
 	value, err := s.app.GetRedirectionList(c.Context())
 	if err != nil {

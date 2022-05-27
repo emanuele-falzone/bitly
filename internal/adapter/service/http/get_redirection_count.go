@@ -5,22 +5,21 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type RedirectionCountRequest struct {
+type redirectionCountRequest struct {
 	Key string `validate:"min=1"`
 }
 
-// RedirectionCountHandler godoc
 // @Summary      Get the redirection count
 // @Accept       json
 // @Produce      json
 // @Param        key  path      string  true  "Key"
-// @Success      200 {object}  		RedirectionCountRepresentation
-// @Failure      404      {object}  ErrorMessage
-// @Failure      500      {object}  ErrorMessage
+// @Success      200 {object}  		redirectionCountRepresentation
+// @Failure      404      {object}  errorMessage
+// @Failure      500      {object}  errorMessage
 // @Router       /api/redirection/{key}/count [get]
-func (s Server) RedirectionCountHandler(c *fiber.Ctx) error {
-	// Parse key param to create a DeleteRedirectionRequest
-	request := RedirectionCountRequest{Key: c.Params("key")}
+func (s *Server) redirectionCountHandler(c *fiber.Ctx) error {
+	// Parse key param to create a redirectionCountRequest
+	request := redirectionCountRequest{Key: c.Params("key")}
 
 	// Validate the request
 	err := internal.Validate(request)

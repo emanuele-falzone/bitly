@@ -5,22 +5,21 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type DeleteRedirectionRequest struct {
+type deleteRedirectionRequest struct {
 	Key string `validate:"min=1"`
 }
 
-// DeleteRedirectionHandler godoc
 // @Summary      Delete the redirection associated with a specific key
 // @Accept       json
 // @Produce      json
 // @Param        key  path      string  true  "Key"
 // @Success      204
-// @Failure      404      {object}  ErrorMessage
-// @Failure      500      {object}  ErrorMessage
+// @Failure      404      {object}  errorMessage
+// @Failure      500      {object}  errorMessage
 // @Router       /api/redirection/{key} [delete]
-func (s Server) DeleteRedirectionHandler(c *fiber.Ctx) error {
-	// Parse key param to create a DeleteRedirectionRequest
-	request := DeleteRedirectionRequest{Key: c.Params("key")}
+func (s *Server) deleteRedirectionHandler(c *fiber.Ctx) error {
+	// Parse key param to create a deleteRedirectionRequest
+	request := deleteRedirectionRequest{Key: c.Params("key")}
 
 	// Validate the request
 	err := internal.Validate(request)
