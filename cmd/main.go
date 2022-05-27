@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
@@ -41,9 +40,6 @@ func main() {
 
 	// Subscribe to SIGINT signals
 	signal.Notify(Signals, os.Interrupt, os.Kill)
-
-	// Create a new context
-	ctx := context.Background()
 
 	// Read GRPC_PORT environment variable
 	grpcPort, err := internal.GetEnv("GRPC_PORT")
@@ -114,23 +110,8 @@ func main() {
 	// Create a key generator with random seed
 	keyGenerator := service.NewRandomKeyGenerator(time.Now().Unix())
 
-	// Create event logger to log event to stdout
-	logger := service.NewEventLogger()
-
-	// Create event logger to save event into event repository
-	eventStore := service.NewEventStore(eventRepository)
-
-	// Create new event dispatcher
-	dispatcher := event.NewDispatcher(ctx)
-
-	// Register logger into dispatcher
-	dispatcher.Register(logger)
-
-	// Register event store into dispatcher
-	dispatcher.Register(eventStore)
-
 	// Create a new application
-	app := application.New(redirectionRepository, eventRepository, keyGenerator, dispatcher)
+	app := application.New(redirectionRepository, eventRepository, keyGenerator)
 
 	// Create a new grpc server
 	grpcServer := grpc.NewServer(app)
