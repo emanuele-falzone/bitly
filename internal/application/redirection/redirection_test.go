@@ -12,7 +12,7 @@ import (
 )
 
 func TestDomainRedirection_New(t *testing.T) {
-	// Build our needed testcase data struct
+	// Build our needed test case data struct
 	type testCase struct {
 		test            string
 		location        string

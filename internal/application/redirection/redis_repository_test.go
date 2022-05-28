@@ -15,10 +15,7 @@ import (
 )
 
 func TestIntegration_Redis_RedirectionRepository_Create(t *testing.T) {
-	// Create a redirection that we are going to use in our test cases
-	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
-
-	// Build our needed testcase data struct
+	// Build our needed test case data struct
 	type testCase struct {
 		test            string
 		alreadyExists   bool   // True if the redirection should already exist in the repository
@@ -50,13 +47,16 @@ func TestIntegration_Redis_RedirectionRepository_Create(t *testing.T) {
 			repository, err := newRedisRepository(ctx)
 			assert.Nil(t, err)
 
+			// Create a redirection
+			redirectionValue := &redirection.Redirection{Key: "short", Location: "http://www.google.com"}
+
 			// Create the redirection if it should already exist in the repository
 			if tc.alreadyExists {
-				repository.Create(ctx, value)
+				repository.Create(ctx, redirectionValue)
 			}
 
 			// Insert the redirection into the repository
-			err = repository.Create(ctx, value)
+			err = repository.Create(ctx, redirectionValue)
 
 			// Check expected error and expected error code
 			if tc.expectedErr {
@@ -69,10 +69,7 @@ func TestIntegration_Redis_RedirectionRepository_Create(t *testing.T) {
 }
 
 func TestIntegration_Redis_RedirectionRepository_Delete(t *testing.T) {
-	// Create a redirection that we are going to use in our test cases
-	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
-
-	// Build our needed testcase data struct
+	// Build our needed test case data struct
 	type testCase struct {
 		test            string
 		alreadyExists   bool   // True if the redirection should already exist in the repository
@@ -104,13 +101,16 @@ func TestIntegration_Redis_RedirectionRepository_Delete(t *testing.T) {
 			repository, err := newRedisRepository(ctx)
 			assert.Nil(t, err)
 
+			// Create a redirection
+			redirectionValue := &redirection.Redirection{Key: "short", Location: "http://www.google.com"}
+
 			// Create the redirection if it should already exist in the repository
 			if tc.alreadyExists {
-				repository.Create(ctx, value)
+				repository.Create(ctx, redirectionValue)
 			}
 
 			// Insert the redirection into the repository
-			err = repository.Delete(ctx, value)
+			err = repository.Delete(ctx, redirectionValue)
 
 			// Check expected error and expected error code
 			if tc.expectedErr {
@@ -123,10 +123,7 @@ func TestIntegration_Redis_RedirectionRepository_Delete(t *testing.T) {
 }
 
 func TestIntegration_Redis_RedirectionRepository_FindByKey(t *testing.T) {
-	// Create a redirection that we are going to use in our test cases
-	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
-
-	// Build our needed testcase data struct
+	// Build our needed test case data struct
 	type testCase struct {
 		test            string
 		alreadyExists   bool   // True if the redirection should already exist in the repository
@@ -158,40 +155,42 @@ func TestIntegration_Redis_RedirectionRepository_FindByKey(t *testing.T) {
 			repository, err := newRedisRepository(ctx)
 			assert.Nil(t, err)
 
+			// Create a redirection
+			redirectionValue := &redirection.Redirection{Key: "short", Location: "http://www.google.com"}
+
 			// Create the redirection if it should already exist in the repository
 			if tc.alreadyExists {
-				repository.Create(ctx, value)
+				repository.Create(ctx, redirectionValue)
 			}
 
 			// Retrieve redirection from repository
-			result, err := repository.FindByKey(ctx, value.Key)
+			result, err := repository.FindByKey(ctx, redirectionValue.Key)
 
 			// Check result and expected error
 			if tc.expectedErr {
 				assert.Equal(t, tc.expectedErrCode, internal.ErrorCode(err))
 			} else {
 				assert.Nil(t, err)
-				assert.Equal(t, value.Key, result.Key)
-				assert.Equal(t, value.Location, result.Location)
+				assert.Equal(t, redirectionValue.Key, result.Key)
+				assert.Equal(t, redirectionValue.Location, result.Location)
 			}
 		})
 	}
 }
 
 func TestIntegration_Redis_RedirectionRepository_FindAll(t *testing.T) {
-	// Build our needed testcase data struct
+	// Build our needed test case data struct
 	type testCase struct {
 		test          string
-		redirections  []redirection.Redirection // Redirection stored inside the repository
-		alreadyExists bool                      // True if the redirection should already exist in the repository
-		expectedCount int                       // Expected number of results returned
+		redirections  []*redirection.Redirection // Redirection stored inside the repository
+		expectedCount int                        // Expected number of results returned
 	}
 
 	// Create new test cases
 	testCases := []testCase{
 		{
 			test: "Existing Redirection",
-			redirections: []redirection.Redirection{
+			redirections: []*redirection.Redirection{
 				{Key: "a", Location: "http://www.google.com"},
 				{Key: "b", Location: "http://www.google.com"},
 				{Key: "c", Location: "http://www.google.com"},
@@ -200,7 +199,7 @@ func TestIntegration_Redis_RedirectionRepository_FindAll(t *testing.T) {
 			expectedCount: 4,
 		}, {
 			test:          "Redirection Does Not Exists",
-			redirections:  []redirection.Redirection{},
+			redirections:  []*redirection.Redirection{},
 			expectedCount: 0,
 		},
 	}

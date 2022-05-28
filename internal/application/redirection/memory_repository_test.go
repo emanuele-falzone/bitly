@@ -1,4 +1,4 @@
-//-go:build unit
+//go:build unit
 
 package redirection_test
 
@@ -13,10 +13,7 @@ import (
 )
 
 func TestMemory_RedirectionRepository_Create(t *testing.T) {
-	// Create a redirection that we are going to use in our test cases
-	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
-
-	// Build our needed testcase data struct
+	// Build our needed test case data struct
 	type testCase struct {
 		test            string
 		alreadyExists   bool   // True if the redirection should already exist in the repository
@@ -47,6 +44,9 @@ func TestMemory_RedirectionRepository_Create(t *testing.T) {
 			// Create a new (clean) memory repository
 			repository := redirection.NewInMemoryRepository()
 
+			// Create a redirection
+			value := &redirection.Redirection{Key: "short", Location: "http://www.google.com"}
+
 			// Create the redirection if it should already exist in the repository
 			if tc.alreadyExists {
 				repository.Create(ctx, value)
@@ -66,10 +66,7 @@ func TestMemory_RedirectionRepository_Create(t *testing.T) {
 }
 
 func TestMemory_RedirectionRepository_Delete(t *testing.T) {
-	// Create a redirection that we are going to use in our test cases
-	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
-
-	// Build our needed testcase data struct
+	// Build our needed test case data struct
 	type testCase struct {
 		test            string
 		alreadyExists   bool   // True if the redirection should already exist in the repository
@@ -99,6 +96,9 @@ func TestMemory_RedirectionRepository_Delete(t *testing.T) {
 
 			// Create a new (clean) memory repository
 			repository := redirection.NewInMemoryRepository()
+
+			// Create a redirection
+			value := &redirection.Redirection{Key: "short", Location: "http://www.google.com"}
 
 			// Create the redirection if it should already exist in the repository
 			if tc.alreadyExists {
@@ -119,10 +119,7 @@ func TestMemory_RedirectionRepository_Delete(t *testing.T) {
 }
 
 func TestMemory_RedirectionRepository_FindByKey(t *testing.T) {
-	// Create a redirection that we are going to use in our test cases
-	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
-
-	// Build our needed testcase data struct
+	// Build our needed test case data struct
 	type testCase struct {
 		test            string
 		alreadyExists   bool   // True if the redirection should already exist in the repository
@@ -152,6 +149,9 @@ func TestMemory_RedirectionRepository_FindByKey(t *testing.T) {
 
 			// Create a new (clean) memory repository
 			repository := redirection.NewInMemoryRepository()
+
+			// Create a redirection
+			value := &redirection.Redirection{Key: "short", Location: "http://www.google.com"}
 
 			// Create the redirection if it should already exist in the repository
 			if tc.alreadyExists {
@@ -174,19 +174,18 @@ func TestMemory_RedirectionRepository_FindByKey(t *testing.T) {
 }
 
 func TestMemory_RedirectionRepository_FindAll(t *testing.T) {
-	// Build our needed testcase data struct
+	// Build our needed test case data struct
 	type testCase struct {
 		test          string
-		redirections  []redirection.Redirection // Redirection stored inside the repository
-		alreadyExists bool                      // True if the redirection should already exist in the repository
-		expectedCount int                       // Expected number of results returned
+		redirections  []*redirection.Redirection // Redirection stored inside the repository
+		expectedCount int                        // Expected number of results returned
 	}
 
 	// Create new test cases
 	testCases := []testCase{
 		{
 			test: "Existing Redirection",
-			redirections: []redirection.Redirection{
+			redirections: []*redirection.Redirection{
 				{Key: "a", Location: "http://www.google.com"},
 				{Key: "b", Location: "http://www.google.com"},
 				{Key: "c", Location: "http://www.google.com"},
@@ -195,7 +194,7 @@ func TestMemory_RedirectionRepository_FindAll(t *testing.T) {
 			expectedCount: 4,
 		}, {
 			test:          "Redirection Does Not Exists",
-			redirections:  []redirection.Redirection{},
+			redirections:  []*redirection.Redirection{},
 			expectedCount: 0,
 		},
 	}
