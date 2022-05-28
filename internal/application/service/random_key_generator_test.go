@@ -10,16 +10,14 @@ import (
 )
 
 func TestRandomKeyGenerator(t *testing.T) {
-	// Build our needed testcase data struct
+	// Build our needed test case data struct
 	type testCase struct {
-		location string
-		key      string
+		key string
 	}
 	// Create new test cases
 	testCases := []testCase{
 		{
-			location: "http://www.google.com",
-			key:      "dd5w3b", // Depends on seed
+			key: "dd5w3b", // Depends on seed
 		},
 	}
 
@@ -27,6 +25,6 @@ func TestRandomKeyGenerator(t *testing.T) {
 	generator := service.NewRandomKeyGenerator(0)
 	for _, tc := range testCases {
 		// Run Tests
-		assert.Equal(t, tc.key, generator.NextKey(tc.location))
+		assert.Equal(t, tc.key, generator.NextKey())
 	}
 }
