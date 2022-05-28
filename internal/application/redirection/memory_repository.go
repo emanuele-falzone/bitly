@@ -10,73 +10,75 @@ import (
 	"golang.org/x/exp/maps"
 )
 
+// InMemoryRepository is a redirection repository that store values in memory
 type InMemoryRepository struct {
-	mu           sync.Mutex
-	redirections map[string]Redirection
+	mu         sync.Mutex
+	collection map[string]*Redirection
 }
 
+// NewInMemoryRepository creates a new redirection repository that store values in memory
 func NewInMemoryRepository() *InMemoryRepository {
 	return &InMemoryRepository{
-		redirections: make(map[string]Redirection),
+		collection: make(map[string]*Redirection),
 	}
 }
 
-func (r *InMemoryRepository) Create(ctx context.Context, a Redirection) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+func (repo *InMemoryRepository) Create(ctx context.Context, value *Redirection) error {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
 
 	// Check if the Key already exists
-	if _, alreadyExists := r.redirections[a.Key]; alreadyExists {
+	if _, alreadyExists := repo.collection[value.Key]; alreadyExists {
 		// Cannot create a redirection with the same Key return error
 		return &internal.Error{
 			Code:    internal.ErrConflict,
-			Message: fmt.Sprintf("a redirection with key %s already exists", a.Key),
+			Message: fmt.Sprintf("a redirection with key %s already exists", value.Key),
 		}
 	}
 	// Store the new redirect
-	r.redirections[a.Key] = a
+	repo.collection[value.Key] = value
 
 	return nil
 }
 
-func (r *InMemoryRepository) Delete(ctx context.Context, a Redirection) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+func (repo *InMemoryRepository) Delete(ctx context.Context, value *Redirection) error {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
 
 	// Check if the Key already exists
-	if _, alreadyExists := r.redirections[a.Key]; !alreadyExists {
+	if _, alreadyExists := repo.collection[value.Key]; !alreadyExists {
 		// Cannot delete a redirection that does not exists, return error
 		return &internal.Error{
 			Code:    internal.ErrNotFound,
-			Message: fmt.Sprintf("cannot find a redirection with key %s", a.Key),
+			Message: fmt.Sprintf("cannot find a redirection with key %s", value.Key),
 		}
 	}
 	// Delete the specified redirection
-	delete(r.redirections, a.Key)
+	delete(repo.collection, value.Key)
 
 	return nil
 }
 
-func (r *InMemoryRepository) FindByKey(ctx context.Context, key string) (Redirection, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+func (repo *InMemoryRepository) FindByKey(ctx context.Context, key string) (*Redirection, error) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
 
 	// Check if the key exists
-	if redirect, exists := r.redirections[key]; exists {
-		return redirect, nil
+	if value, exists := repo.collection[key]; exists {
+		return value, nil
 	}
 
 	// Cannot find a redirection with the given key return error
-	return Redirection{}, &internal.Error{
+	return nil, &internal.Error{
 		Code:    internal.ErrNotFound,
 		Message: fmt.Sprintf("cannot find a redirection with key %s", key),
 	}
 }
 
-func (r *InMemoryRepository) FindAll(ctx context.Context) ([]Redirection, error) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+func (repo *InMemoryRepository) FindAll(ctx context.Context) ([]*Redirection, error) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
 
 	// Return all the redirection values
-	return maps.Values(r.redirections), nil
+	return maps.Values(repo.collection), nil
 }
