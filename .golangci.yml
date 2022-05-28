@@ -40,4 +40,5 @@ linters:
     - wsl
 
 run:
+  tests: false
   issues-exit-code: 1
