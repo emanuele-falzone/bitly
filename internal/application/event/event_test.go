@@ -11,25 +11,25 @@ import (
 )
 
 func TestDomainEvent_Type(t *testing.T) {
-	// Build our needed testcase data struct
+	// Build our needed test case data struct
 	type testCase struct {
 		test              string
-		event             event.Event
+		eventType         event.Type
 		expectedEventType event.Type
 	}
 	// Create new test cases
 	testCases := []testCase{
 		{
 			test:              "Read",
-			event:             event.Read(redirection.Redirection{}),
+			eventType:         event.TypeRead,
 			expectedEventType: event.TypeRead,
 		}, {
 			test:              "Create",
-			event:             event.Created(redirection.Redirection{}),
+			eventType:         event.TypeCreate,
 			expectedEventType: event.TypeCreate,
 		}, {
 			test:              "Delete",
-			event:             event.Deleted(redirection.Redirection{}),
+			eventType:         event.TypeDelete,
 			expectedEventType: event.TypeDelete,
 		},
 	}
@@ -37,13 +37,15 @@ func TestDomainEvent_Type(t *testing.T) {
 	for _, tc := range testCases {
 		// Run Tests
 		t.Run(tc.test, func(t *testing.T) {
-			assert.Equal(t, tc.expectedEventType, tc.event.Type)
+			value := &redirection.Redirection{Key: "short", Location: "http://www.google.com"}
+			event := event.Now(tc.eventType, value)
+			assert.Equal(t, tc.expectedEventType, event.Type)
 		})
 	}
 }
 
 func TestDomainEvent_DateTime(t *testing.T) {
-	// Build our needed testcase data struct
+	// Build our needed test case data struct
 	type testCase struct {
 		test     string
 		dateTime string
@@ -65,7 +67,8 @@ func TestDomainEvent_DateTime(t *testing.T) {
 	for _, tc := range testCases {
 		// Run Tests
 		t.Run(tc.test, func(t *testing.T) {
-			event := event.New(tc.dateTime, event.TypeRead, redirection.Redirection{})
+			value := &redirection.Redirection{Key: "short", Location: "http://www.google.com"}
+			event := event.New(tc.dateTime, event.TypeRead, value)
 			assert.Equal(t, tc.dateTime, event.DateTime)
 		})
 	}

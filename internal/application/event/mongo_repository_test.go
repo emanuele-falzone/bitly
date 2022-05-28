@@ -18,26 +18,23 @@ import (
 )
 
 func TestIntegration_Mongo_EventRepository_Create(t *testing.T) {
-	// Create a redirection that we are going to use in our test cases
-	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
-
-	// Build our needed testcase data struct
+	// Build our needed test case data struct
 	type testCase struct {
-		test  string
-		event event.Event // Event to be inserted into the repository
+		test      string
+		eventType event.Type // Event to be inserted into the repository
 	}
 
 	// Create new test cases
 	testCases := []testCase{
 		{
-			test:  "Created Event",
-			event: event.Created(value),
+			test:      "Created Event",
+			eventType: event.TypeCreate,
 		}, {
-			test:  "Read Event",
-			event: event.Read(value),
+			test:      "Read Event",
+			eventType: event.TypeRead,
 		}, {
-			test:  "Deleted Event",
-			event: event.Deleted(value),
+			test:      "Deleted Event",
+			eventType: event.TypeDelete,
 		},
 	}
 
@@ -51,8 +48,14 @@ func TestIntegration_Mongo_EventRepository_Create(t *testing.T) {
 			repository, err := newMongoRepository(ctx)
 			assert.Nil(t, err)
 
+			// Create a redirection
+			redirectionValue := &redirection.Redirection{Key: "short", Location: "http://www.google.com"}
+
+			// Create the event
+			eventValue := event.Now(tc.eventType, redirectionValue)
+
 			// Insert the event into the repository
-			err = repository.Create(ctx, tc.event)
+			err = repository.Create(ctx, eventValue)
 
 			// Check if the event has been inserted without error
 			assert.Nil(t, err)
@@ -61,10 +64,7 @@ func TestIntegration_Mongo_EventRepository_Create(t *testing.T) {
 }
 
 func TestIntegration_Mongo_EventRepository_FindByRedirection(t *testing.T) {
-	// Create a redirection that we are going to use in our test cases
-	value := redirection.Redirection{Key: "short", Location: "http://www.google.com"}
-
-	// Build our needed testcase data struct
+	// Build our needed test case data struct
 	type testCase struct {
 		test            string
 		count           int    // Number of times the event has to be inserted into the repository
@@ -92,6 +92,9 @@ func TestIntegration_Mongo_EventRepository_FindByRedirection(t *testing.T) {
 			// Create a new context
 			ctx := context.Background()
 
+			// Create a redirection
+			redirectionValue := &redirection.Redirection{Key: "short", Location: "http://www.google.com"}
+
 			// Create a new (clean) mongo repository
 			repository, err := newMongoRepository(ctx)
 			assert.Nil(t, err)
@@ -99,12 +102,12 @@ func TestIntegration_Mongo_EventRepository_FindByRedirection(t *testing.T) {
 			// Insert the event into the repository tc.count times
 			for i := 0; i < tc.count; i++ {
 				// Insert the event into the repository
-				err := repository.Create(ctx, event.Read(value))
+				err := repository.Create(ctx, event.Now(event.TypeRead, redirectionValue))
 				assert.Nil(t, err)
 			}
 
 			// Find the events in the repository
-			events, err := repository.FindByRedirection(ctx, value)
+			events, err := repository.FindByRedirection(ctx, redirectionValue)
 
 			// Check events length
 			assert.Len(t, events, tc.count)
