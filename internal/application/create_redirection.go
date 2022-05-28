@@ -9,12 +9,13 @@ import (
 	"github.com/emanuelefalzone/bitly/internal/application/redirection"
 )
 
-func (app *Application) CreateRedirection(ctx context.Context, location string) (string, error) {
+// CreateRedirection creates a new redirection for the given location and returns the associated key
+func (app *Application) CreateRedirection(ctx context.Context, location string) (key string, err error) {
 	// Get a new key from the key generator
-	key := app.keyGenerator.NextKey(location)
+	key = app.keyGenerator.NextKey()
 
 	// Create a new redirection given the generated key and specified location
-	val, err := redirection.New(key, location)
+	value, err := redirection.New(key, location)
 
 	// If the create operation fails return error
 	if err != nil {
@@ -25,10 +26,7 @@ func (app *Application) CreateRedirection(ctx context.Context, location string) 
 	}
 
 	// Save the redirection inside the repository
-	err = app.redirectionRepository.Create(ctx, val)
-
-	// If the save operation fails return error
-	if err != nil {
+	if err := app.redirectionRepository.Create(ctx, value); err != nil {
 		return "", &internal.Error{
 			Op:  "Application: CreateRedirection",
 			Err: err,
@@ -36,13 +34,10 @@ func (app *Application) CreateRedirection(ctx context.Context, location string) 
 	}
 
 	// Create new event
-	e := event.Created(val)
-
-	// Store created event in repository
-	err = app.eventRepository.Create(ctx, e)
+	e := event.Now(event.TypeCreate, value)
 
 	// If the save operation fails return error
-	if err != nil {
+	if err := app.eventRepository.Create(ctx, e); err != nil {
 		return "", &internal.Error{
 			Op:  "Application: CreateRedirection",
 			Err: err,

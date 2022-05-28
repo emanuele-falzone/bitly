@@ -7,9 +7,10 @@ import (
 	"github.com/emanuelefalzone/bitly/internal/application/event"
 )
 
-func (app *Application) GetRedirectionCount(ctx context.Context, key string) (int, error) {
+// GetRedirectionCount returns the number of times the redirection with the given key ahs been read
+func (app *Application) GetRedirectionCount(ctx context.Context, key string) (count int, err error) {
 	// Find the redirection inside the repository
-	val, err := app.redirectionRepository.FindByKey(ctx, key)
+	value, err := app.redirectionRepository.FindByKey(ctx, key)
 
 	// If the find operation fails return error
 	if err != nil {
@@ -20,7 +21,7 @@ func (app *Application) GetRedirectionCount(ctx context.Context, key string) (in
 	}
 
 	// Find the redirection inside the repository
-	events, err := app.eventRepository.FindByRedirection(ctx, val)
+	events, err := app.eventRepository.FindByRedirection(ctx, value)
 
 	// If the find operation fails return error
 	if err != nil {
@@ -31,14 +32,12 @@ func (app *Application) GetRedirectionCount(ctx context.Context, key string) (in
 	}
 
 	// Computer the number of read events by iterating the events
-	readEventCount := 0
-
 	for _, e := range events {
 		if e.Type == event.TypeRead {
-			readEventCount++
+			count++
 		}
 	}
 
 	// Return the number of times a specific redirection has been read
-	return readEventCount, nil
+	return count, nil
 }

@@ -6,7 +6,8 @@ import (
 	"github.com/emanuelefalzone/bitly/internal"
 )
 
-func (app *Application) GetRedirectionList(ctx context.Context) ([]string, error) {
+// GetRedirectionList returns the key list of the available redirections
+func (app *Application) GetRedirectionList(ctx context.Context) (keys []string, err error) {
 	// Find the redirections inside the repository
 	values, err := app.redirectionRepository.FindAll(ctx)
 
@@ -18,12 +19,12 @@ func (app *Application) GetRedirectionList(ctx context.Context) ([]string, error
 		}
 	}
 
-	// Create keys slice
-	keys := []string{}
+	// Initialize keys
+	keys = make([]string, len(values))
 
 	// Extract keys from values
-	for _, value := range values {
-		keys = append(keys, value.Key)
+	for i, value := range values {
+		keys[i] = value.Key
 	}
 
 	// Return the redirection keys

@@ -8,9 +8,10 @@ import (
 	"github.com/emanuelefalzone/bitly/internal/application/event"
 )
 
+// DeleteRedirection deletes the redirection with the given key
 func (app *Application) DeleteRedirection(ctx context.Context, key string) error {
 	// Find the redirection inside the repository
-	val, err := app.redirectionRepository.FindByKey(ctx, key)
+	value, err := app.redirectionRepository.FindByKey(ctx, key)
 
 	// If the find operation fails return error
 	if err != nil {
@@ -21,10 +22,7 @@ func (app *Application) DeleteRedirection(ctx context.Context, key string) error
 	}
 
 	// Save the redirection inside the repository
-	err = app.redirectionRepository.Delete(ctx, val)
-
-	// If the delete operation fails return error
-	if err != nil {
+	if err := app.redirectionRepository.Delete(ctx, value); err != nil {
 		return &internal.Error{
 			Op:  "Application: DeleteRedirection",
 			Err: err,
@@ -32,13 +30,10 @@ func (app *Application) DeleteRedirection(ctx context.Context, key string) error
 	}
 
 	// Create new event
-	e := event.Deleted(val)
+	e := event.Now(event.TypeDelete, value)
 
 	// Store created event in repository
-	err = app.eventRepository.Create(ctx, e)
-
-	// If the save operation fails return error
-	if err != nil {
+	if err := app.eventRepository.Create(ctx, e); err != nil {
 		return &internal.Error{
 			Op:  "Application: DeleteRedirection",
 			Err: err,
