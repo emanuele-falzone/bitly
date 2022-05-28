@@ -1,5 +1,7 @@
 package service
 
+// KeyGenerator allows for generating new keys
 type KeyGenerator interface {
-	NextKey(location string) string
+	// NextKey generates a new key
+	NextKey() string
 }
