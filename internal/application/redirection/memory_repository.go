@@ -1,4 +1,4 @@
-package memory
+package redirection
 
 import (
 	"context"
@@ -6,22 +6,22 @@ import (
 	"sync"
 
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
+
 	"golang.org/x/exp/maps"
 )
 
-type InMemoryRedirectionRepository struct {
+type InMemoryRepository struct {
 	mu           sync.Mutex
-	redirections map[string]redirection.Redirection
+	redirections map[string]Redirection
 }
 
-func NewRedirectionRepository() *InMemoryRedirectionRepository {
-	return &InMemoryRedirectionRepository{
-		redirections: make(map[string]redirection.Redirection),
+func NewInMemoryRepository() *InMemoryRepository {
+	return &InMemoryRepository{
+		redirections: make(map[string]Redirection),
 	}
 }
 
-func (r *InMemoryRedirectionRepository) Create(ctx context.Context, a redirection.Redirection) error {
+func (r *InMemoryRepository) Create(ctx context.Context, a Redirection) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -39,7 +39,7 @@ func (r *InMemoryRedirectionRepository) Create(ctx context.Context, a redirectio
 	return nil
 }
 
-func (r *InMemoryRedirectionRepository) Delete(ctx context.Context, a redirection.Redirection) error {
+func (r *InMemoryRepository) Delete(ctx context.Context, a Redirection) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -57,7 +57,7 @@ func (r *InMemoryRedirectionRepository) Delete(ctx context.Context, a redirectio
 	return nil
 }
 
-func (r *InMemoryRedirectionRepository) FindByKey(ctx context.Context, key string) (redirection.Redirection, error) {
+func (r *InMemoryRepository) FindByKey(ctx context.Context, key string) (Redirection, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -67,13 +67,13 @@ func (r *InMemoryRedirectionRepository) FindByKey(ctx context.Context, key strin
 	}
 
 	// Cannot find a redirection with the given key return error
-	return redirection.Redirection{}, &internal.Error{
+	return Redirection{}, &internal.Error{
 		Code:    internal.ErrNotFound,
 		Message: fmt.Sprintf("cannot find a redirection with key %s", key),
 	}
 }
 
-func (r *InMemoryRedirectionRepository) FindAll(ctx context.Context) ([]redirection.Redirection, error) {
+func (r *InMemoryRepository) FindAll(ctx context.Context) ([]Redirection, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 

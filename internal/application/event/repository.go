@@ -3,7 +3,7 @@ package event
 import (
 	"context"
 
-	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
+	"github.com/emanuelefalzone/bitly/internal/application/redirection"
 )
 
 type Repository interface {

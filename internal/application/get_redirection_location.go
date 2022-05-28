@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/domain/event"
+	"github.com/emanuelefalzone/bitly/internal/application/event"
 )
 
 func (app *Application) GetRedirectionLocation(ctx context.Context, key string) (string, error) {

@@ -1,18 +1,17 @@
-package redis
+package redirection
 
 import (
 	"context"
 
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
 	"github.com/go-redis/redis/v8"
 )
 
-type RedirectionRepository struct {
+type RedisRepository struct {
 	client *redis.Client
 }
 
-func NewRedirectionRepository(connectionString string) (*RedirectionRepository, error) {
+func NewRedisRepository(connectionString string) (*RedisRepository, error) {
 	// Parse connection string and check for errors
 	opt, err := redis.ParseURL(connectionString)
 	if err != nil {
@@ -27,10 +26,10 @@ func NewRedirectionRepository(connectionString string) (*RedirectionRepository, 
 	client := redis.NewClient(opt)
 
 	// Return a new RedirectionRepository
-	return &RedirectionRepository{client: client}, nil
+	return &RedisRepository{client: client}, nil
 }
 
-func (r *RedirectionRepository) Create(ctx context.Context, a redirection.Redirection) error {
+func (r *RedisRepository) Create(ctx context.Context, a Redirection) error {
 	// Save the redirection in Redis
 	ok, err := r.client.SetNX(ctx, a.Key, a.Location, 0).Result()
 
@@ -55,7 +54,7 @@ func (r *RedirectionRepository) Create(ctx context.Context, a redirection.Redire
 	return nil
 }
 
-func (r *RedirectionRepository) Delete(ctx context.Context, a redirection.Redirection) error {
+func (r *RedisRepository) Delete(ctx context.Context, a Redirection) error {
 	// Delete the redirection from Redis
 	_, err := r.client.GetDel(ctx, a.Key).Result()
 
@@ -80,13 +79,13 @@ func (r *RedirectionRepository) Delete(ctx context.Context, a redirection.Redire
 	return nil
 }
 
-func (r *RedirectionRepository) FindByKey(ctx context.Context, key string) (redirection.Redirection, error) {
+func (r *RedisRepository) FindByKey(ctx context.Context, key string) (Redirection, error) {
 	// Get the location associated with the key
 	location, err := r.client.Get(ctx, key).Result()
 
 	if err == redis.Nil {
 		// Cannot find a redirection that does not exists return ErrNotFound
-		return redirection.Redirection{}, &internal.Error{
+		return Redirection{}, &internal.Error{
 			Code: internal.ErrNotFound,
 			Op:   "RedirectionRepository: FindByKey",
 		}
@@ -94,7 +93,7 @@ func (r *RedirectionRepository) FindByKey(ctx context.Context, key string) (redi
 
 	if err != nil {
 		// There was some problem with Redis return error
-		return redirection.Redirection{}, &internal.Error{
+		return Redirection{}, &internal.Error{
 			Code: internal.ErrInternal,
 			Op:   "RedirectionRepository: FindByKey",
 			Err:  err,
@@ -102,10 +101,10 @@ func (r *RedirectionRepository) FindByKey(ctx context.Context, key string) (redi
 	}
 
 	// Use key and location to create a new redirection
-	return redirection.New(key, location)
+	return New(key, location)
 }
 
-func (r *RedirectionRepository) FindAll(ctx context.Context) ([]redirection.Redirection, error) {
+func (r *RedisRepository) FindAll(ctx context.Context) ([]Redirection, error) {
 	// Get all the keys from redis
 	keys, err := r.client.Keys(ctx, "*").Result()
 
@@ -119,7 +118,7 @@ func (r *RedirectionRepository) FindAll(ctx context.Context) ([]redirection.Redi
 	}
 
 	// Create new empty result set
-	result := []redirection.Redirection{}
+	result := []Redirection{}
 
 	// Iterate over keys
 	for _, key := range keys {

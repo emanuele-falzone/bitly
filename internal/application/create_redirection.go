@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/domain/event"
-	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
+	"github.com/emanuelefalzone/bitly/internal/application/event"
+	"github.com/emanuelefalzone/bitly/internal/application/redirection"
 )
 
 func (app *Application) CreateRedirection(ctx context.Context, location string) (string, error) {

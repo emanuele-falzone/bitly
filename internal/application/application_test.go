@@ -8,12 +8,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/memory"
-	"github.com/emanuelefalzone/bitly/internal/service"
-
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
 	"github.com/emanuelefalzone/bitly/internal/application"
+	"github.com/emanuelefalzone/bitly/internal/application/event"
+	"github.com/emanuelefalzone/bitly/internal/application/redirection"
+	"github.com/emanuelefalzone/bitly/internal/application/service"
 	"github.com/emanuelefalzone/bitly/test"
 )
 
@@ -35,10 +35,10 @@ func TestAcceptance_Application(t *testing.T) {
 	}
 
 	// Create a new in memory redirection repository
-	redirectionRepository := memory.NewRedirectionRepository()
+	redirectionRepository := redirection.NewInMemoryRepository()
 
 	// Create a new in memory event repository
-	eventRepository := memory.NewEventRepository()
+	eventRepository := event.NewInMemoryRepository()
 
 	// Create a new random key generator
 	keyGenerator := service.NewRandomKeyGenerator(time.Now().Unix())

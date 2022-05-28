@@ -27,7 +27,7 @@ func TestEndToEnd_HttpServer(t *testing.T) {
 	var opts = godog.Options{
 		Format:   "pretty",
 		Output:   colors.Colored(os.Stdout),
-		Paths:    []string{"../../../../test/feature"},
+		Paths:    []string{"../../../test/feature"},
 		TestingT: t,
 	}
 

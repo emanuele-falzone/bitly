@@ -5,8 +5,8 @@ package event_test
 import (
 	"testing"
 
-	"github.com/emanuelefalzone/bitly/internal/domain/event"
-	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
+	"github.com/emanuelefalzone/bitly/internal/application/event"
+	"github.com/emanuelefalzone/bitly/internal/application/redirection"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -10,7 +10,7 @@ import (
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/adapter/service/grpc/pb"
+	"github.com/emanuelefalzone/bitly/internal/port/grpc/pb"
 	"github.com/emanuelefalzone/bitly/test"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -25,7 +25,7 @@ func TestEndToEnd_GrpcServer(t *testing.T) {
 	var opts = godog.Options{
 		Format:   "pretty",
 		Output:   colors.Colored(os.Stdout),
-		Paths:    []string{"../../../../test/feature"},
+		Paths:    []string{"../../../test/feature"},
 		TestingT: t,
 	}
 

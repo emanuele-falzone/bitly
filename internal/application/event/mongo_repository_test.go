@@ -1,20 +1,20 @@
 //go:build integration
 
-package mongo_test
+package event_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/mongo"
-	"github.com/emanuelefalzone/bitly/internal/domain/event"
-	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
+	"github.com/emanuelefalzone/bitly/internal/application/event"
+	"github.com/emanuelefalzone/bitly/internal/application/redirection"
+
 	"github.com/stretchr/testify/assert"
 
 	"go.mongodb.org/mongo-driver/bson"
-	_mongo "go.mongodb.org/mongo-driver/mongo"
-	_mongo_options "go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func TestIntegration_Mongo_EventRepository_Create(t *testing.T) {
@@ -119,7 +119,7 @@ func TestIntegration_Mongo_EventRepository_FindByRedirection(t *testing.T) {
 	}
 }
 
-func newMongoRepository(ctx context.Context) (event.Repository, error) {
+func newMongoRepository(ctx context.Context) (*event.MongoRepository, error) {
 	// Read Mongo connection string from env
 	connectionString, err := internal.GetEnv("INTEGRATION_MONGO_CONNECTION_STRING")
 	if err != nil {
@@ -127,7 +127,7 @@ func newMongoRepository(ctx context.Context) (event.Repository, error) {
 	}
 
 	// Create new mongo client with the given connection string
-	client, err := _mongo.NewClient(_mongo_options.Client().ApplyURI(connectionString))
+	client, err := mongo.NewClient(options.Client().ApplyURI(connectionString))
 	if err != nil {
 		return nil, err
 	}
@@ -155,5 +155,5 @@ func newMongoRepository(ctx context.Context) (event.Repository, error) {
 		}
 	}
 
-	return mongo.NewEventRepository(connectionString)
+	return event.NewMongoRepository(connectionString)
 }

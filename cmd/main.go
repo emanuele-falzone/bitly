@@ -9,15 +9,12 @@ import (
 	"time"
 
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/memory"
-	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/mongo"
-	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/redis"
-	"github.com/emanuelefalzone/bitly/internal/adapter/service/grpc"
-	"github.com/emanuelefalzone/bitly/internal/adapter/service/http"
 	"github.com/emanuelefalzone/bitly/internal/application"
-	"github.com/emanuelefalzone/bitly/internal/domain/event"
-	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
-	"github.com/emanuelefalzone/bitly/internal/service"
+	"github.com/emanuelefalzone/bitly/internal/application/event"
+	"github.com/emanuelefalzone/bitly/internal/application/redirection"
+	"github.com/emanuelefalzone/bitly/internal/application/service"
+	"github.com/emanuelefalzone/bitly/internal/port/grpc"
+	"github.com/emanuelefalzone/bitly/internal/port/http"
 )
 
 var (
@@ -74,7 +71,7 @@ func main() {
 	// If a redis connection string has been specified
 	if err == nil {
 		// Create a redis repository
-		redirectionRepository, err = redis.NewRedirectionRepository(redisConnectionString)
+		redirectionRepository, err = redirection.NewRedisRepository(redisConnectionString)
 		if err != nil {
 			log.Panic(err)
 		}
@@ -85,7 +82,7 @@ func main() {
 		log.Println(err)
 
 		// Otherwise use a memory repository
-		redirectionRepository = memory.NewRedirectionRepository()
+		redirectionRepository = redirection.NewInMemoryRepository()
 		log.Println("Using in memory repository.")
 	}
 
@@ -98,7 +95,7 @@ func main() {
 	// If a mongo connection string has been specified
 	if err == nil {
 		// Create a mongo repository
-		eventRepository, err = mongo.NewEventRepository(mongoConnectionString)
+		eventRepository, err = event.NewMongoRepository(mongoConnectionString)
 		if err != nil {
 			log.Panic(err)
 		}
@@ -109,7 +106,7 @@ func main() {
 		log.Println(err)
 
 		// Otherwise use a memory repository
-		eventRepository = memory.NewEventRepository()
+		eventRepository = event.NewInMemoryRepository()
 		log.Println("Using in memory repository.")
 	}
 

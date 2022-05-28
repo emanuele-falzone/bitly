@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/domain/event"
+	"github.com/emanuelefalzone/bitly/internal/application/event"
 )
 
 func (app *Application) GetRedirectionCount(ctx context.Context, key string) (int, error) {

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
+	"github.com/emanuelefalzone/bitly/internal/application/redirection"
 )
 
 func TestDomainRedirection_New(t *testing.T) {

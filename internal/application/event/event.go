@@ -3,7 +3,7 @@ package event
 import (
 	"time"
 
-	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
+	"github.com/emanuelefalzone/bitly/internal/application/redirection"
 )
 
 type Type string

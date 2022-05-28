@@ -1,11 +1,11 @@
-package mongo
+package event
 
 import (
 	"context"
 
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/domain/event"
-	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
+	"github.com/emanuelefalzone/bitly/internal/application/redirection"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -16,7 +16,7 @@ const (
 	collection = "events"
 )
 
-type EventRepository struct {
+type MongoRepository struct {
 	client mongo.Client
 }
 
@@ -26,7 +26,7 @@ type mongoEvent struct {
 	DateTime string `bson:"datetime"`
 }
 
-func NewEventRepository(connectionString string) (*EventRepository, error) {
+func NewMongoRepository(connectionString string) (*MongoRepository, error) {
 	// Create new mongo client with the given connection string
 	client, err := mongo.NewClient(options.Client().ApplyURI(connectionString))
 	if err != nil {
@@ -40,10 +40,10 @@ func NewEventRepository(connectionString string) (*EventRepository, error) {
 	}
 
 	// Return new EventRepository
-	return &EventRepository{client: *client}, nil
+	return &MongoRepository{client: *client}, nil
 }
 
-func (r *EventRepository) Create(ctx context.Context, a event.Event) error {
+func (r *MongoRepository) Create(ctx context.Context, a Event) error {
 	// Select database
 	db := r.client.Database(db)
 
@@ -71,7 +71,7 @@ func (r *EventRepository) Create(ctx context.Context, a event.Event) error {
 	return nil
 }
 
-func (r *EventRepository) FindByRedirection(ctx context.Context, a redirection.Redirection) ([]event.Event, error) {
+func (r *MongoRepository) FindByRedirection(ctx context.Context, a redirection.Redirection) ([]Event, error) {
 	// Select database
 	db := r.client.Database(db)
 
@@ -98,11 +98,11 @@ func (r *EventRepository) FindByRedirection(ctx context.Context, a redirection.R
 		}
 	}
 
-	// Map Event into event.Event
-	results := make([]event.Event, len(events))
+	// Map Event into Event
+	results := make([]Event, len(events))
 
 	for i, value := range events {
-		results[i] = event.New(value.DateTime, event.Type(value.Type), a)
+		results[i] = New(value.DateTime, Type(value.Type), a)
 	}
 
 	// Check result size

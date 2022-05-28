@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/domain/event"
+	"github.com/emanuelefalzone/bitly/internal/application/event"
 )
 
 func (app *Application) DeleteRedirection(ctx context.Context, key string) error {

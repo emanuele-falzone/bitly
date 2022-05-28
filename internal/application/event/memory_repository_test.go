@@ -1,15 +1,15 @@
 //go:build unit
 
-package memory_test
+package event_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/adapter/persistence/memory"
-	"github.com/emanuelefalzone/bitly/internal/domain/event"
-	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
+	"github.com/emanuelefalzone/bitly/internal/application/event"
+	"github.com/emanuelefalzone/bitly/internal/application/redirection"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -44,7 +44,7 @@ func TestMemory_EventRepository_Create(t *testing.T) {
 			ctx := context.Background()
 
 			// Create a new (clean) memory repository
-			repository := memory.NewEventRepository()
+			repository := event.NewInMemoryRepository()
 
 			// Insert the event into the repository
 			err := repository.Create(ctx, tc.event)
@@ -88,7 +88,7 @@ func TestMemory_EventRepository_FindByRedirection(t *testing.T) {
 			ctx := context.Background()
 
 			// Create a new (clean) memory repository
-			repository := memory.NewEventRepository()
+			repository := event.NewInMemoryRepository()
 
 			// Insert the event into the repository tc.count times
 			for i := 0; i < tc.count; i++ {

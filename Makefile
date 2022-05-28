@@ -7,18 +7,18 @@ generate-code:
 	mockgen -destination=./test/mock/redirection_repository.go \
 		-package=mock \
 		-mock_names=Repository=MockRedirectionRepository \
-		github.com/emanuelefalzone/bitly/internal/domain/redirection Repository
+		github.com/emanuelefalzone/bitly/internal/application/redirection Repository
 
 	# Generate mock event repository
 	mockgen -destination=./test/mock/event_repository.go \
 		-package=mock \
 		-mock_names=Repository=MockEventRepository \
-		github.com/emanuelefalzone/bitly/internal/domain/event Repository
+		github.com/emanuelefalzone/bitly/internal/application/event Repository
 
 	# Generate mock key generator
 	mockgen -destination=./test/mock/key_generator_service.go \
 		-package=mock \
-		github.com/emanuelefalzone/bitly/internal/service KeyGenerator
+		github.com/emanuelefalzone/bitly/internal/application/service KeyGenerator
 
 	# Install protobuf and grpc
 	go get google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0
@@ -31,7 +31,7 @@ generate-code:
 		--go_opt=paths=source_relative \
 		--go-grpc_out=. \
 		--go-grpc_opt=paths=source_relative \
-		internal/adapter/service/grpc/pb/bitly_service.proto
+		internal/port/grpc/pb/bitly_service.proto
 
 generate-docs:
 	# Ensure docs directory exists
@@ -45,7 +45,7 @@ generate-docs:
 	protoc \
 		--doc_out=./docs \
   		--doc_opt=html,proto.html \
-		internal/adapter/service/grpc/pb/bitly_service.proto
+		internal/port/grpc/pb/bitly_service.proto
 
 	# Install swag
 	go get github.com/swaggo/swag/gen@v1.8.2
@@ -53,7 +53,7 @@ generate-docs:
 	go install github.com/swaggo/swag/cmd/swag
 
 	# Generate documentation for grpc service
-	swag init -d internal/adapter/service/http --generalInfo server.go
+	swag init -d internal/port/http --generalInfo server.go
 
 build-for-production:
 	# Build removing debug info
@@ -96,24 +96,39 @@ teardown-docker-environment:
 run-integration-tests:
 	# Run integration tests with coverage
 	INTEGRATION_REDIS_CONNECTION_STRING=redis://localhost:6379 \
-	INTEGRATION_MONGO_CONNECTION_STRING=mongodb://root:example@localhost:27017 \
 		go test \
-		./internal/adapter/persistence/... \
+		./internal/application/redirection/redis_repository_test.go \
 		-v \
 		-count=1 \
 		-coverpkg=$(CVPKG) \
-		-coverprofile integration-coverage.out \
+		-coverprofile integration-coverage-redis.out \
+		--tags=integration
+
+	INTEGRATION_MONGO_CONNECTION_STRING=mongodb://root:example@localhost:27017 \
+		go test \
+		./internal/application/event/mongo_repository_test.go \
+		-v \
+		-count=1 \
+		-coverpkg=$(CVPKG) \
+		-coverprofile integration-coverage-mongo.out \
 		--tags=integration
 
 	# Generate human readable coverage result
-	go tool cover -html integration-coverage.out -o integration-coverage.html
+	go tool cover -html integration-coverage-redis.out -o integration-coverage-redis.html
+	go tool cover -html integration-coverage-mongo.out -o integration-coverage-mongo.html
 
 run-e2e-tests:
 	# Run e2e tests
 	E2E_GRPC_SERVER=localhost:6060 \
+	go test \
+		./internal/port/grpc/server_test.go \
+		-v \
+		-count=1 \
+		--tags=e2e
+
 	E2E_HTTP_SERVER=http://localhost:7070 \
 	go test \
-		./internal/adapter/service/... \
+		./internal/port/http/server_test.go \
 		-v \
 		-count=1 \
 		--tags=e2e

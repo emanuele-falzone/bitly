@@ -1,4 +1,4 @@
-package memory
+package event
 
 import (
 	"context"
@@ -6,22 +6,21 @@ import (
 	"sync"
 
 	"github.com/emanuelefalzone/bitly/internal"
-	"github.com/emanuelefalzone/bitly/internal/domain/event"
-	"github.com/emanuelefalzone/bitly/internal/domain/redirection"
+	"github.com/emanuelefalzone/bitly/internal/application/redirection"
 )
 
-type InMemoryEventRepository struct {
+type InMemoryRepository struct {
 	mu     sync.Mutex
-	events map[string][]event.Event
+	events map[string][]Event
 }
 
-func NewEventRepository() *InMemoryEventRepository {
-	return &InMemoryEventRepository{
-		events: make(map[string][]event.Event),
+func NewInMemoryRepository() *InMemoryRepository {
+	return &InMemoryRepository{
+		events: make(map[string][]Event),
 	}
 }
 
-func (r *InMemoryEventRepository) Create(ctx context.Context, a event.Event) error {
+func (r *InMemoryRepository) Create(ctx context.Context, a Event) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -31,8 +30,8 @@ func (r *InMemoryEventRepository) Create(ctx context.Context, a event.Event) err
 	return nil
 }
 
-func (r *InMemoryEventRepository) FindByRedirection(ctx context.Context,
-	a redirection.Redirection) ([]event.Event, error) {
+func (r *InMemoryRepository) FindByRedirection(ctx context.Context,
+	a redirection.Redirection) ([]Event, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -43,7 +42,7 @@ func (r *InMemoryEventRepository) FindByRedirection(ctx context.Context,
 	}
 
 	// Cannot find the specified redirection, return error
-	return []event.Event{}, &internal.Error{
+	return []Event{}, &internal.Error{
 		Code:    internal.ErrNotFound,
 		Message: fmt.Sprintf("cannot find a redirection with key %s", a.Key),
 	}

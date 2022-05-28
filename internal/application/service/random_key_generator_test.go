@@ -3,7 +3,7 @@
 package service_test
 
 import (
-	"github.com/emanuelefalzone/bitly/internal/service"
+	"github.com/emanuelefalzone/bitly/internal/application/service"
 	"github.com/stretchr/testify/assert"
 
 	"testing"
