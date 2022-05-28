@@ -16,6 +16,7 @@ const (
 	collection = "events"
 )
 
+// MongoRepository is an event repository that store values in mongo
 type MongoRepository struct {
 	client mongo.Client
 }
@@ -26,35 +27,35 @@ type mongoEvent struct {
 	DateTime string `bson:"datetime"`
 }
 
-func NewMongoRepository(connectionString string) (*MongoRepository, error) {
+// NewMongoRepository creates a new event repository that store values in mongo
+func NewMongoRepository(connection string) (*MongoRepository, error) {
 	// Create new mongo client with the given connection string
-	client, err := mongo.NewClient(options.Client().ApplyURI(connectionString))
+	client, err := mongo.NewClient(options.Client().ApplyURI(connection))
 	if err != nil {
 		return nil, err
 	}
 
 	// Connect with the mongo instance
-	err = client.Connect(context.Background())
-	if err != nil {
+	if err = client.Connect(context.Background()); err != nil {
 		return nil, err
 	}
 
-	// Return new EventRepository
+	// Return new MongoRepository
 	return &MongoRepository{client: *client}, nil
 }
 
-func (r *MongoRepository) Create(ctx context.Context, a Event) error {
+func (repo *MongoRepository) Create(ctx context.Context, value *Event) error {
 	// Select database
-	db := r.client.Database(db)
+	db := repo.client.Database(db)
 
 	// Select collection
 	eventCollection := db.Collection(collection)
 
 	// Insert event into collection
 	_, err := eventCollection.InsertOne(context.Background(), mongoEvent{
-		Key:      a.Redirection.Key,
-		Type:     string(a.Type),
-		DateTime: a.DateTime,
+		Key:      value.Redirection.Key,
+		Type:     string(value.Type),
+		DateTime: value.DateTime,
 	})
 
 	// Check for error during insert
@@ -62,7 +63,7 @@ func (r *MongoRepository) Create(ctx context.Context, a Event) error {
 		// There was some problem with mongo return error
 		return &internal.Error{
 			Code: internal.ErrInternal,
-			Op:   "EventRepository: Create",
+			Op:   "MongoRepository: Create",
 			Err:  err,
 		}
 	}
@@ -71,19 +72,19 @@ func (r *MongoRepository) Create(ctx context.Context, a Event) error {
 	return nil
 }
 
-func (r *MongoRepository) FindByRedirection(ctx context.Context, a redirection.Redirection) ([]Event, error) {
+func (repo *MongoRepository) FindByRedirection(ctx context.Context, value *redirection.Redirection) ([]*Event, error) {
 	// Select database
-	db := r.client.Database(db)
+	db := repo.client.Database(db)
 
 	// Select collection
 	eventCollection := db.Collection(collection)
 
 	// Filter events by key
-	filterCursor, err := eventCollection.Find(context.TODO(), bson.M{"key": a.Key})
+	filterCursor, err := eventCollection.Find(context.TODO(), bson.M{"key": value.Key})
 	if err != nil {
 		return nil, &internal.Error{
 			Code: internal.ErrInternal,
-			Op:   "EventRepository: FindByRedirection",
+			Op:   "MongoRepository: FindByRedirection",
 			Err:  err,
 		}
 	}
@@ -93,23 +94,23 @@ func (r *MongoRepository) FindByRedirection(ctx context.Context, a redirection.R
 	if err = filterCursor.All(context.TODO(), &events); err != nil {
 		return nil, &internal.Error{
 			Code: internal.ErrInternal,
-			Op:   "EventRepository: FindByRedirection",
+			Op:   "MongoRepository: FindByRedirection",
 			Err:  err,
 		}
 	}
 
 	// Map Event into Event
-	results := make([]Event, len(events))
+	results := make([]*Event, len(events))
 
-	for i, value := range events {
-		results[i] = New(value.DateTime, Type(value.Type), a)
+	for i, event := range events {
+		results[i] = New(event.DateTime, Type(event.Type), value)
 	}
 
 	// Check result size
 	if len(results) == 0 {
 		return nil, &internal.Error{
 			Code: internal.ErrNotFound,
-			Op:   "EventRepository: FindByRedirection",
+			Op:   "MongoRepository: FindByRedirection",
 		}
 	}
 
