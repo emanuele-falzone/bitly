@@ -14,16 +14,19 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// Server associates a grpc server with an application
 type Server struct {
 	pb.UnimplementedBitlyServiceServer
 	app        *application.Application
 	grpcServer *grpc.Server
 }
 
+// NewServer create a new server with the given application
 func NewServer(app *application.Application) *Server {
 	return &Server{app: app}
 }
 
+// Start tries to start a new grpc server on the given port
 func (s *Server) Start(port int) error {
 	// Announce on the local network
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
@@ -44,6 +47,7 @@ func (s *Server) Start(port int) error {
 	return s.grpcServer.Serve(lis)
 }
 
+// Stop gracefully stops the server
 func (s *Server) Stop() {
 	// Gracefully stop server
 	s.grpcServer.GracefulStop()

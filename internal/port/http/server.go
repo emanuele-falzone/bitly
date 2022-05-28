@@ -18,15 +18,18 @@ import (
 // @version   1.0.0
 // @host      localhost:7070
 // @BasePath  /
+// Server associates an http server with an application
 type Server struct {
 	app      *application.Application
 	fiberApp *fiber.App
 }
 
+// NewServer create a new server with the given application
 func NewServer(app *application.Application) *Server {
 	return &Server{app: app}
 }
 
+// Start tries to start a new grpc server on the given port
 func (s *Server) Start(port int) error {
 	// Create new fiber app with custom error handler
 	s.fiberApp = fiber.New(fiber.Config{ErrorHandler: errorHandler})
@@ -48,6 +51,7 @@ func (s *Server) Start(port int) error {
 	return s.fiberApp.Listen(fmt.Sprintf(":%d", port))
 }
 
+// Stop gracefully stops the server
 func (s *Server) Stop() {
 	// Gracefully stop server
 	if err := s.fiberApp.Shutdown(); err != nil {

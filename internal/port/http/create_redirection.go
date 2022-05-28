@@ -23,14 +23,12 @@ func (s *Server) createRedirectionHandler(c *fiber.Ctx) error {
 	request := createRedirectionRequest{}
 
 	// Parse the http request body into the request
-	err := c.BodyParser(&request)
-	if err != nil {
+	if err := c.BodyParser(&request); err != nil {
 		return err
 	}
 
 	// Validate the request
-	err = internal.Validate(request)
-	if err != nil {
+	if err := internal.Validate(request); err != nil {
 		return err
 	}
 

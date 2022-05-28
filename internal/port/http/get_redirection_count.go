@@ -22,8 +22,7 @@ func (s *Server) redirectionCountHandler(c *fiber.Ctx) error {
 	request := redirectionCountRequest{Key: c.Params("key")}
 
 	// Validate the request
-	err := internal.Validate(request)
-	if err != nil {
+	if err := internal.Validate(request); err != nil {
 		return err
 	}
 

@@ -22,14 +22,12 @@ func (s *Server) deleteRedirectionHandler(c *fiber.Ctx) error {
 	request := deleteRedirectionRequest{Key: c.Params("key")}
 
 	// Validate the request
-	err := internal.Validate(request)
-	if err != nil {
+	if err := internal.Validate(request); err != nil {
 		return err
 	}
 
 	// Command execution
-	err = s.app.DeleteRedirection(c.Context(), request.Key)
-	if err != nil {
+	if err := s.app.DeleteRedirection(c.Context(), request.Key); err != nil {
 		return err
 	}
 
