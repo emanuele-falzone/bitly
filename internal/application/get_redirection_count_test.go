@@ -127,9 +127,9 @@ func TestApplicationQuery_RedirectionCount(t *testing.T) {
 				// Expect error
 				if tc.expectRedirectionRepository.findByKeyMethodCallReturnErr {
 					err := &internal.Error{Code: tc.expectRedirectionRepository.findByKeyMethodCallReturnErrCode}
-					redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(redirection.Redirection{}, err)
+					redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(nil, err)
 				} else {
-					redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(redirection.Redirection{
+					redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(&redirection.Redirection{
 						Key:      tc.key,
 						Location: tc.location,
 					}, nil)
@@ -144,17 +144,17 @@ func TestApplicationQuery_RedirectionCount(t *testing.T) {
 				// Expect error
 				if tc.expectEventRepository.findByRedirectionMethodCallReturnErr {
 					err := &internal.Error{Code: tc.expectEventRepository.findByRedirectionMethodCallReturnErrCode}
-					eventRepository.EXPECT().FindByRedirection(gomock.Any(), gomock.Any()).Return([]event.Event{}, err)
+					eventRepository.EXPECT().FindByRedirection(gomock.Any(), gomock.Any()).Return(nil, err)
 				} else {
-					events := []event.Event{}
+					events := []*event.Event{}
 					for i := 0; i < tc.expectEventRepository.findByRedirectionMethodCallReturnCreateEventCount; i++ {
-						events = append(events, event.Created(redirection.Redirection{Key: tc.key, Location: tc.location}))
+						events = append(events, event.Now(event.TypeCreate, &redirection.Redirection{Key: tc.key, Location: tc.location}))
 					}
 					for i := 0; i < tc.expectEventRepository.findByRedirectionMethodCallReturnReadEventCount; i++ {
-						events = append(events, event.Read(redirection.Redirection{Key: tc.key, Location: tc.location}))
+						events = append(events, event.Now(event.TypeRead, &redirection.Redirection{Key: tc.key, Location: tc.location}))
 					}
 					for i := 0; i < tc.expectEventRepository.findByRedirectionMethodCallReturnDeleteEventCount; i++ {
-						events = append(events, event.Deleted(redirection.Redirection{Key: tc.key, Location: tc.location}))
+						events = append(events, event.Now(event.TypeDelete, &redirection.Redirection{Key: tc.key, Location: tc.location}))
 					}
 					eventRepository.EXPECT().FindByRedirection(gomock.Any(), gomock.Any()).Return(events, nil)
 				}

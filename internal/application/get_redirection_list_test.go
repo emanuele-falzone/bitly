@@ -17,10 +17,10 @@ import (
 func TestApplicationQuery_RedirectionList(t *testing.T) {
 	// Build our needed testcase data struct
 	type testCaseRedirectionRepository struct {
-		findAllMethodCall              bool                      // True if we expect a call to the method
-		findAllMethodCallReturnValue   []redirection.Redirection // Method return value
-		findAllMethodCallReturnErr     bool                      // True if we expect the method to return an error
-		findAllMethodCallReturnErrCode string                    // Expected error code
+		findAllMethodCall              bool                       // True if we expect a call to the method
+		findAllMethodCallReturnValue   []*redirection.Redirection // Method return value
+		findAllMethodCallReturnErr     bool                       // True if we expect the method to return an error
+		findAllMethodCallReturnErrCode string                     // Expected error code
 	}
 	type testCase struct {
 		test                        string
@@ -36,7 +36,7 @@ func TestApplicationQuery_RedirectionList(t *testing.T) {
 			test: "Success",
 			expectRedirectionRepository: testCaseRedirectionRepository{
 				findAllMethodCall: true,
-				findAllMethodCallReturnValue: []redirection.Redirection{
+				findAllMethodCallReturnValue: []*redirection.Redirection{
 					{Key: "abcde", Location: "http://www.google.com"},
 					{Key: "efghi", Location: "http://www.apple.com"},
 				},
@@ -48,7 +48,7 @@ func TestApplicationQuery_RedirectionList(t *testing.T) {
 			test: "Success",
 			expectRedirectionRepository: testCaseRedirectionRepository{
 				findAllMethodCall:            true,
-				findAllMethodCallReturnValue: []redirection.Redirection{},
+				findAllMethodCallReturnValue: []*redirection.Redirection{},
 				findAllMethodCallReturnErr:   false,
 			},
 			expectErr:   false,

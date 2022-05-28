@@ -83,9 +83,9 @@ func TestApplicationQuery_RedirectionLocation(t *testing.T) {
 				// Expect error
 				if tc.expectRedirectionRepository.findByKeyMethodCallReturnErr {
 					err := &internal.Error{Code: tc.expectRedirectionRepository.findByKeyMethodCallReturnErrCode}
-					redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(redirection.Redirection{}, err)
+					redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(nil, err)
 				} else {
-					redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(redirection.Redirection{
+					redirectionRepository.EXPECT().FindByKey(gomock.Any(), gomock.Any()).Return(&redirection.Redirection{
 						Key:      tc.key,
 						Location: tc.location,
 					}, nil)

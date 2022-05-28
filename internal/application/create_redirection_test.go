@@ -117,7 +117,7 @@ func TestApplicationCommand_CreateRedirection(t *testing.T) {
 
 			// Expect next key method call
 			if tc.expectKeyGenerator.nextKeyMethodCall {
-				keyGenerator.EXPECT().NextKey(gomock.Any()).Return(tc.expectKeyGenerator.nextKeyMethodCallReturnValue)
+				keyGenerator.EXPECT().NextKey().Return(tc.expectKeyGenerator.nextKeyMethodCallReturnValue)
 			}
 
 			// Create new mock repository
